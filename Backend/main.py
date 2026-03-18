@@ -1,9 +1,14 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from database import get_db
+from database import get_db, engine
+import models
+from routers import auth as auth_router
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="UniRoast API", version="1.0.0")
+app.include_router(auth_router.router)
 
 # 配置CORS（允许前端访问）
 app.add_middleware(
