@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Trophy, Upload } from 'lucide-react'
+import api from '../api'
+import useAuth from '../store/useAuth'
 
 const VOTE_OPTIONS = [
   { emoji: '😐', label: '一般' },
@@ -11,46 +13,36 @@ const VOTE_OPTIONS = [
 
 const rankBadge = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
+const todayTheme = {
+  title: "最难以名状的食堂美食",
+  emoji: "🍜",
+  description: "展示你在食堂吃到的最离谱的饭菜"
+}
+
 export default function Home() {
+  const [posts, setPosts] = useState([])
   const [votes, setVotes] = useState({})
-  const [likes, setLikes] = useState({ 1: 42, 2: 38 })
-  const [liked, setLiked] = useState({})
+  const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
 
-  const todayTheme = {
-    title: "最难以名状的食堂美食",
-    emoji: "🍜",
-    description: "展示你在食堂吃到的最离谱的饭菜"
-  }
+  useEffect(() => {
+    api.get('/posts/').then(({ data }) => {
+      setPosts(data)
+    }).finally(() => setLoading(false))
+  }, [])
 
-  const mockPosts = [
-    {
-      id: 1,
-      username: "张三",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
-      image: "https://picsum.photos/400/300?random=1",
-      caption: "我觉得这应该是土豆炖牛肉...吧？",
-      aiRoast: "这份菜成功证明了食堂阿姨是色盲，因为这个颜色在自然界根本不存在 🤢",
-      rank: 1
-    },
-    {
-      id: 2,
-      username: "李四",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
-      image: "https://picsum.photos/400/300?random=2",
-      caption: "这是啥我真看不出来",
-      aiRoast: "AI已被你的食物送进ICU抢救，建议你也去挂个号 💀",
-      rank: 2
-    }
-  ]
-
-  function handleVote(postId, index) {
+  async function handleVote(postId, index) {
+    if (votes[postId] !== undefined) return
     setVotes(v => ({ ...v, [postId]: index }))
-  }
-
-  function handleLike(postId) {
-    if (liked[postId]) return
-    setLiked(l => ({ ...l, [postId]: true }))
-    setLikes(l => ({ ...l, [postId]: l[postId] + 1 }))
+    try {
+      const { data } = await api.post(`/posts/${postId}/vote`, { score: index + 1 })
+      setPosts(ps => ps.map(p => p.id === postId
+        ? { ...p, avg_score: data.new_avg, vote_count: data.vote_count }
+        : p
+      ))
+    } catch {
+      setVotes(v => { const n = { ...v }; delete n[postId]; return n })
+    }
   }
 
   return (
@@ -83,82 +75,83 @@ export default function Home() {
       </div>
 
       {/* 帖子列表 */}
-      <div className="space-y-6">
-        {mockPosts.map(post => (
-          <div key={post.id} className="bg-white rounded-2xl shadow-md overflow-hidden">
-            {/* 用户信息 */}
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center space-x-3">
-                <img src={post.avatar} className="w-9 h-9 rounded-full" alt="" />
-                <span className="font-semibold text-gray-800">{post.username}</span>
-              </div>
-              {rankBadge[post.rank] && (
-                <span className="text-2xl">{rankBadge[post.rank]}</span>
-              )}
-            </div>
-
-            {/* 图片 */}
-            <img src={post.image} className="w-full aspect-[4/3] object-cover" alt="" />
-
-            {/* AI 评论区 — 视觉核心 */}
-            <div className="mx-4 mt-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
-              <div className="flex items-start space-x-3">
-                <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-full w-8 h-8 flex items-center justify-center shrink-0 text-sm">
-                  🤖
+      {loading ? (
+        <div className="text-center py-20 text-gray-400">加载中...</div>
+      ) : posts.length === 0 ? (
+        <div className="text-center py-20 text-gray-400">还没有人参战，快来第一个！</div>
+      ) : (
+        <div className="space-y-6">
+          {posts.map((post, idx) => (
+            <div key={post.id} className="bg-white rounded-2xl shadow-md overflow-hidden">
+              {/* 用户信息 */}
+              <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center space-x-3">
+                  <img
+                    src={post.author.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author.id}`}
+                    className="w-9 h-9 rounded-full"
+                    alt=""
+                  />
+                  <span className="font-semibold text-gray-800">{post.author.username}</span>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-purple-600 mb-1">AI 毒舌评委</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{post.aiRoast}</p>
+                {rankBadge[idx + 1] && <span className="text-2xl">{rankBadge[idx + 1]}</span>}
+              </div>
+
+              {/* 图片 */}
+              <img src={post.image_url} className="w-full aspect-[4/3] object-cover" alt="" />
+
+              {/* AI 评论区 */}
+              <div className="mx-4 mt-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
+                <div className="flex items-start space-x-3">
+                  <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-full w-8 h-8 flex items-center justify-center shrink-0 text-sm">
+                    🤖
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-purple-600 mb-1">AI 毒舌评委</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {post.ai_comment || 'AI 评委正在思考中...'}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* 投票区 — emoji 横排大按钮 */}
-            <div className="px-4 pt-3 pb-1">
-              <p className="text-xs text-gray-400 mb-2 text-center">你觉得这道菜怎么样？</p>
-              <div className="flex justify-between gap-1">
-                {VOTE_OPTIONS.map((opt, i) => {
-                  const selected = votes[post.id] === i
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => handleVote(post.id, i)}
-                      className={`flex-1 flex flex-col items-center py-2 rounded-xl transition-all
-                        ${selected
-                          ? 'bg-purple-100 scale-110 shadow-sm'
-                          : 'hover:bg-gray-50 active:scale-95'
-                        }`}
-                    >
-                      <span className="text-2xl">{opt.emoji}</span>
-                      <span className={`text-xs mt-0.5 ${selected ? 'text-purple-600 font-semibold' : 'text-gray-400'}`}>
-                        {opt.label}
-                      </span>
-                    </button>
-                  )
-                })}
+              {/* 投票区 */}
+              <div className="px-4 pt-3 pb-1">
+                <p className="text-xs text-gray-400 mb-2 text-center">你觉得这道菜怎么样？</p>
+                <div className="flex justify-between gap-1">
+                  {VOTE_OPTIONS.map((opt, i) => {
+                    const selected = votes[post.id] === i
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handleVote(post.id, i)}
+                        disabled={!user || votes[post.id] !== undefined}
+                        className={`flex-1 flex flex-col items-center py-2 rounded-xl transition-all
+                          ${selected ? 'bg-purple-100 scale-110 shadow-sm' : 'hover:bg-gray-50 active:scale-95'}
+                          disabled:opacity-50`}
+                      >
+                        <span className="text-2xl">{opt.emoji}</span>
+                        <span className={`text-xs mt-0.5 ${selected ? 'text-purple-600 font-semibold' : 'text-gray-400'}`}>
+                          {opt.label}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+                {post.vote_count > 0 && (
+                  <p className="text-xs text-center text-gray-400 mt-1">
+                    {post.vote_count} 人投票 · 平均 {post.avg_score.toFixed(1)} 分
+                  </p>
+                )}
+              </div>
+
+              {/* 配文 */}
+              <div className="px-4 pb-4 pt-2">
+                {post.caption && <p className="text-sm text-gray-600">{post.caption}</p>}
               </div>
             </div>
-
-            {/* 底部：配文 + 点赞评论 */}
-            <div className="px-4 pb-4 pt-2">
-              <p className="text-sm text-gray-600 mb-3">{post.caption}</p>
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => handleLike(post.id)}
-                  className={`flex items-center space-x-1 transition ${liked[post.id] ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}`}
-                >
-                  <span>{liked[post.id] ? '❤️' : '🤍'}</span>
-                  <span className="text-sm font-medium">{likes[post.id]}</span>
-                </button>
-                <button className="flex items-center space-x-1 text-gray-400 hover:text-blue-400 transition">
-                  <span>💬</span>
-                  <span className="text-sm">评论</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
