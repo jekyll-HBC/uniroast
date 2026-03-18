@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from database import get_db
 from auth import get_current_user
+from ai_service import generate_roast
 import models, schemas
+import asyncio
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -14,12 +15,13 @@ def list_posts(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=schemas.PostOut, status_code=status.HTTP_201_CREATED)
-def create_post(
+async def create_post(
     data: schemas.PostCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    post = models.Post(**data.model_dump(), user_id=current_user.id)
+    ai_comment = await generate_roast(data.theme, data.caption)
+    post = models.Post(**data.model_dump(), user_id=current_user.id, ai_comment=ai_comment)
     db.add(post)
     db.commit()
     db.refresh(post)
