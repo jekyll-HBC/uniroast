@@ -54,13 +54,33 @@ function TierDistribution({ posts, postRefs }) {
   )
 }
 
+// 打字机效果 hook
+function useTypewriter(text, active) {
+  const [displayed, setDisplayed] = useState('')
+  useEffect(() => {
+    if (!active || !text) return
+    setDisplayed('')
+    let i = 0
+    const timer = setInterval(() => {
+      setDisplayed(text.slice(0, ++i))
+      if (i >= text.length) clearInterval(timer)
+    }, 30)
+    return () => clearInterval(timer)
+  }, [text, active])
+  return displayed
+}
+
 // 发帖弹窗
 function SubmitModal({ theme, onClose, onPosted }) {
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState(null)
   const [caption, setCaption] = useState('')
+  // status: idle | uploading | posting | reveal
   const [status, setStatus] = useState('idle')
+  const [result, setResult] = useState(null) // 发布成功的 post
   const inputRef = useRef()
+
+  const aiText = useTypewriter(result?.ai_comment, status === 'reveal')
 
   function pickFile(e) {
     const f = e.target.files[0]
@@ -82,22 +102,83 @@ function SubmitModal({ theme, onClose, onPosted }) {
         image_url: uploadData.image_url,
         caption: caption || null,
       })
+      setResult(post)
+      setStatus('reveal')
       onPosted(post)
-      onClose()
     } catch {
       setStatus('idle')
     }
   }
 
-  const busy = status !== 'idle'
-  const statusText = status === 'uploading' ? '上传图片中...' : status === 'posting' ? '🤖 AI 评委正在吐槽中...' : null
+  const tierStyle = result ? (TIER_STYLE[result.tier] || TIER_STYLE['未评级']) : null
 
+  // 开奖界面
+  if (status === 'reveal' && result) {
+    return (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+          {/* 图片（清晰） */}
+          <div className="relative">
+            <img src={result.image_url} className="w-full aspect-square object-cover" alt="" />
+            <div className="absolute top-3 right-3">
+              <span className={`text-sm font-bold px-3 py-1.5 rounded-full shadow ${tierStyle.badge}`}>
+                {result.tier || '未评级'}
+              </span>
+            </div>
+          </div>
+
+          {/* AI 评语打字机 */}
+          <div className="p-5">
+            <div className="flex items-start space-x-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100 mb-4">
+              <span className="text-xl shrink-0">🤖</span>
+              <div>
+                <p className="text-xs font-bold text-purple-600 mb-1">AI 毒舌评委</p>
+                <p className="text-sm text-gray-700 leading-relaxed min-h-[3rem]">
+                  {aiText}<span className="animate-pulse">|</span>
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold"
+            >
+              好的，去看排名 🔥
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 等待界面
+  if (status === 'uploading' || status === 'posting') {
+    return (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+          <div className="relative">
+            <img src={preview} className="w-full aspect-square object-cover blur-sm scale-105" alt="" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
+              <p className="text-white font-bold text-lg mb-2">
+                {status === 'uploading' ? '上传中...' : '🤖 AI 评委正在吐槽中...'}
+              </p>
+              <div className="w-32 h-1.5 bg-white/30 rounded-full overflow-hidden">
+                <div className="h-full bg-white rounded-full animate-pulse w-2/3" />
+              </div>
+            </div>
+          </div>
+          <div className="p-5 text-center text-gray-400 text-sm">请稍候，评委正在认真审阅...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // 正常填写界面
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold">{theme.emoji} {theme.title}</h3>
-          <button onClick={onClose} disabled={busy}><X size={20} className="text-gray-400" /></button>
+          <button onClick={onClose}><X size={20} className="text-gray-400" /></button>
         </div>
         {preview ? (
           <img src={preview} className="w-full aspect-[4/3] object-cover rounded-xl mb-2" alt="" />
@@ -124,13 +205,12 @@ function SubmitModal({ theme, onClose, onPosted }) {
           rows={2}
           className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-purple-400 mb-4"
         />
-        {statusText && <p className="text-sm text-purple-500 text-center mb-3 animate-pulse">{statusText}</p>}
         <button
           onClick={handleSubmit}
-          disabled={!file || busy}
+          disabled={!file}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold disabled:opacity-50"
         >
-          {busy ? '处理中...' : '发布参战'}
+          发布参战
         </button>
       </div>
     </div>
