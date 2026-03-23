@@ -24,6 +24,17 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class ThemeOut(BaseModel):
+    id: int
+    title: str
+    emoji: str
+    description: str | None
+    date: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # Posts
 class PostCreate(BaseModel):
     theme: str

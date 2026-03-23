@@ -5,12 +5,14 @@ from database import get_db, engine
 import models
 from routers import auth as auth_router
 from routers import posts as posts_router
+from routers import themes as themes_router
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="UniRoast API", version="1.0.0")
 app.include_router(auth_router.router)
 app.include_router(posts_router.router)
+app.include_router(themes_router.router)
 
 # 配置CORS（允许前端访问）
 app.add_middleware(

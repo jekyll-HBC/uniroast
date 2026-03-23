@@ -1,27 +1,38 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from database import get_db
 from auth import get_current_user
 from ai_service import generate_roast
+from upload_service import upload_image
 import models, schemas
-import asyncio
+import uuid
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
 
 @router.get("/", response_model=list[schemas.PostOut])
-def list_posts(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
-    return db.query(models.Post).order_by(models.Post.created_at.desc()).offset(skip).limit(limit).all()
+def list_posts(skip: int = 0, limit: int = 20, user_id: int | None = None, db: Session = Depends(get_db)):
+    q = db.query(models.Post)
+    if user_id:
+        q = q.filter(models.Post.user_id == user_id)
+    return q.order_by(models.Post.created_at.desc()).offset(skip).limit(limit).all()
 
 
 @router.post("/", response_model=schemas.PostOut, status_code=status.HTTP_201_CREATED)
 async def create_post(
-    data: schemas.PostCreate,
+    theme: str = Form(...),
+    caption: str | None = Form(None),
+    image: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    ai_comment = await generate_roast(data.theme, data.caption)
-    post = models.Post(**data.model_dump(), user_id=current_user.id, ai_comment=ai_comment)
+    file_bytes = await image.read()
+    image_url = upload_image(file_bytes, f"{current_user.id}_{uuid.uuid4().hex}")
+    ai_comment = await generate_roast(theme, caption)
+    post = models.Post(
+        theme=theme, caption=caption, image_url=image_url,
+        user_id=current_user.id, ai_comment=ai_comment
+    )
     db.add(post)
     db.commit()
     db.refresh(post)
