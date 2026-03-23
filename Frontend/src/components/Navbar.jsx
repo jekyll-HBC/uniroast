@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Home, User, LogIn, LogOut } from 'lucide-react'
+import { Home, User, LogIn, LogOut, Trophy } from 'lucide-react'
 import { useEffect } from 'react'
 import useAuth from '../store/useAuth'
 
@@ -31,6 +31,10 @@ export default function Navbar() {
             <Link to="/" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600">
               <Home size={20} />
               <span>首页</span>
+            </Link>
+            <Link to="/leaderboard" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600">
+              <Trophy size={20} />
+              <span>排行榜</span>
             </Link>
 
             {user ? (

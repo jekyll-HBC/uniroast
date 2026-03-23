@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
+import Leaderboard from './pages/Leaderboard'
+import ThemePage from './pages/ThemePage'
 import Navbar from './components/Navbar'
 import useAuth from './store/useAuth'
 
@@ -18,6 +20,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/theme/:id" element={<ThemePage />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
         </Routes>
       </div>

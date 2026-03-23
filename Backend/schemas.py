@@ -24,33 +24,76 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+# Themes
+class ThemeCreate(BaseModel):
+    title: str
+    emoji: str = "🔥"
+    description: str | None = None
+
+class ThemeOut(BaseModel):
+    id: int
+    title: str
+    emoji: str
+    description: str | None
+    is_official: bool
+    creator: UserOut | None
+    post_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
 # Posts
+TIER_THRESHOLDS = [
+    (4.5, "夯"),
+    (3.5, "顶级"),
+    (2.5, "人上人"),
+    (1.5, "NPC"),
+    (0.0, "拉完了"),
+]
+
+def score_to_tier(avg: float, vote_count: int) -> str:
+    if vote_count == 0:
+        return "未评级"
+    for threshold, label in TIER_THRESHOLDS:
+        if avg >= threshold:
+            return label
+    return "拉完了"
+
 class PostCreate(BaseModel):
-    theme: str
+    theme_id: int
     image_url: str
     caption: str | None = None
 
 class PostOut(BaseModel):
     id: int
-    theme: str
+    theme_id: int
     image_url: str
     caption: str | None
     ai_comment: str | None
     avg_score: float
     vote_count: int
+    tier: str = "未评级"
     created_at: datetime
     author: UserOut
 
     class Config:
         from_attributes = True
 
+    @classmethod
+    def from_orm_with_tier(cls, post):
+        obj = cls.model_validate(post)
+        obj.tier = score_to_tier(post.avg_score, post.vote_count)
+        return obj
+
 
 # Votes
 class VoteCreate(BaseModel):
-    score: int  # 1-5
+    score: int  # 1-5 (夯=5, 顶级=4, 人上人=3, NPC=2, 拉完了=1)
 
 class VoteOut(BaseModel):
     post_id: int
     score: int
     new_avg: float
     vote_count: int
+    tier: str

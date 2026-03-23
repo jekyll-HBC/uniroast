@@ -4,14 +4,19 @@ from database import get_db
 from auth import get_current_user
 from ai_service import generate_roast
 import models, schemas
-import asyncio
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
 
 @router.get("/", response_model=list[schemas.PostOut])
-def list_posts(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
-    return db.query(models.Post).order_by(models.Post.created_at.desc()).offset(skip).limit(limit).all()
+def list_posts(skip: int = 0, limit: int = 20, user_id: int | None = None, theme_id: int | None = None, db: Session = Depends(get_db)):
+    q = db.query(models.Post)
+    if user_id is not None:
+        q = q.filter(models.Post.user_id == user_id)
+    if theme_id is not None:
+        q = q.filter(models.Post.theme_id == theme_id)
+    posts = q.order_by(models.Post.avg_score.desc(), models.Post.created_at.desc()).offset(skip).limit(limit).all()
+    return [schemas.PostOut.from_orm_with_tier(p) for p in posts]
 
 
 @router.post("/", response_model=schemas.PostOut, status_code=status.HTTP_201_CREATED)
@@ -20,12 +25,21 @@ async def create_post(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    ai_comment = await generate_roast(data.theme, data.caption)
-    post = models.Post(**data.model_dump(), user_id=current_user.id, ai_comment=ai_comment)
+    theme = db.query(models.Theme).filter(models.Theme.id == data.theme_id).first()
+    if not theme:
+        raise HTTPException(status_code=404, detail="Theme not found")
+    ai_comment = await generate_roast(theme.title, data.caption)
+    post = models.Post(
+        theme_id=data.theme_id,
+        image_url=data.image_url,
+        caption=data.caption,
+        ai_comment=ai_comment,
+        user_id=current_user.id,
+    )
     db.add(post)
     db.commit()
     db.refresh(post)
-    return post
+    return schemas.PostOut.from_orm_with_tier(post)
 
 
 @router.get("/{post_id}", response_model=schemas.PostOut)
@@ -33,7 +47,7 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
-    return post
+    return schemas.PostOut.from_orm_with_tier(post)
 
 
 @router.post("/{post_id}/vote", response_model=schemas.VoteOut)
@@ -60,7 +74,6 @@ def vote(
     vote = models.Vote(user_id=current_user.id, post_id=post_id, score=data.score)
     db.add(vote)
 
-    # 更新帖子平均分
     post.vote_count += 1
     post.avg_score = ((post.avg_score * (post.vote_count - 1)) + data.score) / post.vote_count
 
@@ -70,4 +83,5 @@ def vote(
         score=data.score,
         new_avg=post.avg_score,
         vote_count=post.vote_count,
+        tier=schemas.score_to_tier(post.avg_score, post.vote_count),
     )

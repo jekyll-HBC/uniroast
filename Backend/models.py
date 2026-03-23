@@ -23,16 +23,32 @@ class Post(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    theme = Column(String(100), nullable=False)       # 今日主题
+    theme_id = Column(Integer, ForeignKey("themes.id"), nullable=False)
     image_url = Column(String, nullable=False)
     caption = Column(String(300), nullable=True)
-    ai_comment = Column(String, nullable=True)        # AI 吐槽
+    ai_comment = Column(String, nullable=True)
     avg_score = Column(Float, default=0.0)
     vote_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     author = relationship("User", back_populates="posts")
+    theme_obj = relationship("Theme", back_populates="posts")
     votes = relationship("Vote", back_populates="post")
+
+
+class Theme(Base):
+    __tablename__ = "themes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(100), nullable=False)
+    emoji = Column(String(10), nullable=False, default="🔥")
+    description = Column(String(200), nullable=True)
+    is_official = Column(Boolean, default=False)
+    creator_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    creator = relationship("User", foreign_keys=[creator_id])
+    posts = relationship("Post", back_populates="theme_obj")
 
 
 class Vote(Base):
