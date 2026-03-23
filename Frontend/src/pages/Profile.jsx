@@ -1,48 +1,86 @@
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import useAuth from '../store/useAuth'
+import api from '../api'
+
 export default function Profile() {
-  const user = {
-    username: "张三",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
-    bio: "食堂美食鉴定师 | AI吐槽受害者",
-    totalPosts: 15,
-    totalLikes: 342,
-    bestRank: 1
-  }
+  const { user } = useAuth()
+  const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!user) return
+    api.get(`/posts/?user_id=${user.id}`)
+      .then(({ data }) => setPosts(data))
+      .finally(() => setLoading(false))
+  }, [user])
+
+  if (!user) return null
+
+  const totalVotes = posts.reduce((sum, p) => sum + p.vote_count, 0)
+  const bestRank = null // 排行榜功能后续实现
 
   return (
     <div className="max-w-2xl mx-auto py-6 px-4">
       {/* 用户信息卡片 */}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
         <div className="flex items-center space-x-4 mb-4">
-          <img src={user.avatar} className="w-20 h-20 rounded-full" alt="" />
+          <img
+            src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
+            className="w-20 h-20 rounded-full"
+            alt=""
+          />
           <div>
             <h2 className="text-2xl font-bold">{user.username}</h2>
-            <p className="text-gray-600">{user.bio}</p>
+            <p className="text-gray-500 text-sm">{user.email}</p>
           </div>
         </div>
 
-        {/* 统计数据 */}
-        <div className="grid grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-2 gap-4 mt-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-purple-600">{user.totalPosts}</p>
+            <p className="text-2xl font-bold text-purple-600">{posts.length}</p>
             <p className="text-sm text-gray-600">参战次数</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-pink-600">{user.totalLikes}</p>
-            <p className="text-sm text-gray-600">获赞总数</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-yellow-600">#{user.bestRank}</p>
-            <p className="text-sm text-gray-600">最佳排名</p>
+            <p className="text-2xl font-bold text-pink-600">{totalVotes}</p>
+            <p className="text-sm text-gray-600">获得投票</p>
           </div>
         </div>
       </div>
 
       {/* 历史帖子 */}
       <h3 className="text-xl font-bold mb-4">我的战绩</h3>
-      <div className="text-center text-gray-500 py-12">
-        <p>还没有参战记录</p>
-        <p className="text-sm mt-2">快去参加今日挑战吧！</p>
-      </div>
+      {loading ? (
+        <div className="text-center text-gray-400 py-12">加载中...</div>
+      ) : posts.length === 0 ? (
+        <div className="text-center text-gray-500 py-12">
+          <p>还没有参战记录</p>
+          <button
+            onClick={() => navigate('/')}
+            className="mt-3 text-purple-600 hover:text-purple-700 font-medium text-sm"
+          >
+            去参加今日挑战 →
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {posts.map(post => (
+            <div key={post.id} className="bg-white rounded-2xl shadow-md overflow-hidden flex">
+              <img src={post.image_url} className="w-24 h-24 object-cover shrink-0" alt="" />
+              <div className="p-3 flex flex-col justify-between">
+                <div>
+                  <p className="text-xs text-purple-600 font-semibold">{post.theme}</p>
+                  {post.caption && <p className="text-sm text-gray-700 mt-1">{post.caption}</p>}
+                </div>
+                <p className="text-xs text-gray-400">
+                  {post.vote_count} 票 · 均分 {post.avg_score.toFixed(1)}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
