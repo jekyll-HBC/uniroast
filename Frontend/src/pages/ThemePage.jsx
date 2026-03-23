@@ -306,10 +306,20 @@ export default function ThemePage() {
   const { user } = useAuth()
   const [theme, setTheme] = useState(null)
   const [posts, setPosts] = useState([])
-  const [votes, setVotes] = useState({})
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const postRefs = useRef({})
+
+  const VOTES_KEY = `votes_theme_${id}`
+  const [votes, setVotes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(VOTES_KEY)) || {} } catch { return {} }
+  })
+
+  function saveVote(postId, score) {
+    const next = { ...votes, [postId]: score }
+    setVotes(next)
+    localStorage.setItem(VOTES_KEY, JSON.stringify(next))
+  }
 
   useEffect(() => {
     Promise.all([
@@ -323,7 +333,7 @@ export default function ThemePage() {
 
   async function handleVote(postId, score) {
     if (votes[postId] !== undefined) return
-    setVotes(v => ({ ...v, [postId]: score }))
+    saveVote(postId, score)
     try {
       const { data } = await api.post(`/posts/${postId}/vote`, { score })
       setPosts(ps => ps.map(p => p.id === postId
@@ -331,7 +341,8 @@ export default function ThemePage() {
         : p
       ))
     } catch {
-      setVotes(v => { const n = { ...v }; delete n[postId]; return n })
+      const next = { ...votes }; delete next[postId]
+      setVotes(next); localStorage.setItem(VOTES_KEY, JSON.stringify(next))
     }
   }
 
