@@ -41,22 +41,22 @@ export default function Navbar() {
       {/* 底部 Tab Bar */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 safe-area-pb">
         <div className="flex items-center justify-around py-2">
-          <Link to="/" className={`flex flex-col items-center py-1 px-4 ${active('/')}`}>
+          <Link to="/" className={`flex flex-col items-center py-2 px-6 ${active('/')}`}>
             <Home size={24} />
             <span className="text-xs mt-0.5">首页</span>
           </Link>
-          <Link to="/leaderboard" className={`flex flex-col items-center py-1 px-4 ${active('/leaderboard')}`}>
+          <Link to="/leaderboard" className={`flex flex-col items-center py-2 px-6 ${active('/leaderboard')}`}>
             <Trophy size={24} />
             <span className="text-xs mt-0.5">排行榜</span>
           </Link>
           <Link
             to={user ? '/profile' : '/login'}
-            className={`flex flex-col items-center py-1 px-4 ${active('/profile')}`}
+            className={`flex flex-col items-center py-2 px-6 ${active('/profile')}`}
           >
             {user ? (
               <img
                 src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
-                className="w-6 h-6 rounded-full"
+                className="w-7 h-7 rounded-full"
                 alt=""
               />
             ) : (
@@ -68,7 +68,7 @@ export default function Navbar() {
       </nav>
 
       {/* 底部占位，防止内容被 Tab Bar 遮住 */}
-      <div className="h-16" />
+      <div className="h-20" />
     </>
   )
 }

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from datetime import datetime
+from datetime import datetime, date
 
 class UserRegister(BaseModel):
     username: str
@@ -36,6 +36,7 @@ class ThemeOut(BaseModel):
     emoji: str
     description: str | None
     is_official: bool
+    active_date: date | None = None
     creator: UserOut | None
     post_count: int = 0
 

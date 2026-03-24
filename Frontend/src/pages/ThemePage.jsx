@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Upload, X, ArrowLeft } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
@@ -203,7 +203,7 @@ function SubmitModal({ theme, onClose, onPosted }) {
           placeholder="写点配文？（可选）"
           maxLength={300}
           rows={2}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-purple-400 mb-4"
+        className="w-full border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-purple-400 mb-4"
         />
         <button
           onClick={handleSubmit}
@@ -260,7 +260,7 @@ function PostCard({ post, myVote, onVote, postRef }) {
                 key={t}
                 onClick={() => onVote(post.id, TIER_SCORES[t])}
                 disabled={myVote !== undefined}
-                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all
+                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all
                   ${selected ? style.badge + ' scale-105 shadow-sm' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}
                   disabled:cursor-default`}
               >
@@ -286,7 +286,7 @@ function AIComment({ comment }) {
     <div className="mx-4 mt-3">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center space-x-1.5 text-xs text-purple-500 font-semibold"
+        className="flex items-center space-x-1.5 text-sm text-purple-500 font-semibold py-2"
       >
         <span>🤖</span>
         <span>{open ? '收起 AI 评语' : '查看 AI 评语'}</span>
@@ -332,6 +332,7 @@ export default function ThemePage() {
   }, [id])
 
   async function handleVote(postId, score) {
+    if (!user) { navigate('/login'); return }
     if (votes[postId] !== undefined) return
     saveVote(postId, score)
     try {

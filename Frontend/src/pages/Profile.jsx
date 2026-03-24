@@ -31,7 +31,7 @@ export default function Profile() {
   const bestTier = posts.find(p => p.tier === '夯') ? '夯' : posts.find(p => p.tier === '顶级') ? '顶级' : null
 
   return (
-    <div className="max-w-2xl mx-auto py-6 px-4">
+    <div className="max-w-lg mx-auto py-6 px-4">
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
         <div className="flex items-center space-x-4 mb-4">
           <img
@@ -66,7 +66,7 @@ export default function Profile() {
       ) : posts.length === 0 ? (
         <div className="text-center text-gray-500 py-12">
           <p>还没有参战记录</p>
-          <button onClick={() => navigate('/')} className="mt-3 text-purple-600 font-medium text-sm">
+          <button onClick={() => navigate('/')} className="mt-3 text-purple-600 font-medium py-2 px-4">
             去参加今日挑战 →
           </button>
         </div>

@@ -54,7 +54,7 @@ function CreateThemeModal({ onClose, onCreated }) {
           onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
           placeholder="描述一下这个主题（可选）"
           rows={2}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-purple-400 mb-4"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-purple-400 mb-4"
         />
         <button
           onClick={handleSubmit}
@@ -70,19 +70,29 @@ function CreateThemeModal({ onClose, onCreated }) {
 
 export default function Home() {
   const [themes, setThemes] = useState([])
+  const [todayThemes, setTodayThemes] = useState([])
+  const [tab, setTab] = useState('today') // 'today' | 'all'
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const { user } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
-    api.get('/themes/').then(({ data }) => setThemes(data)).finally(() => setLoading(false))
+    Promise.all([
+      api.get('/themes/?today=true'),
+      api.get('/themes/'),
+    ]).then(([todayRes, allRes]) => {
+      setTodayThemes(todayRes.data)
+      setThemes(allRes.data)
+      // 如果没有今日主题，默认显示全部
+      if (todayRes.data.length === 0) setTab('all')
+    }).finally(() => setLoading(false))
   }, [])
 
   return (
     <div className="max-w-lg mx-auto py-6 px-4">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">🔥 今日主题</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">🔥 主题</h1>
         {user && (
           <button
             onClick={() => setShowCreate(true)}
@@ -94,11 +104,27 @@ export default function Home() {
         )}
       </div>
 
+      {/* Tab 切换 */}
+      <div className="flex space-x-2 mb-4">
+        <button
+          onClick={() => setTab('today')}
+          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${tab === 'today' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+        >
+          今日主题
+        </button>
+        <button
+          onClick={() => setTab('all')}
+          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${tab === 'all' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+        >
+          全部主题
+        </button>
+      </div>
+
       {loading ? (
         <div className="text-center py-20 text-gray-400">加载中...</div>
       ) : (
         <div className="space-y-3">
-          {themes.map(theme => (
+          {(tab === 'today' ? todayThemes : themes).map(theme => (
             <button
               key={theme.id}
               onClick={() => navigate(`/theme/${theme.id}`)}
@@ -122,8 +148,10 @@ export default function Home() {
               </div>
             </button>
           ))}
-          {themes.length === 0 && (
-            <div className="text-center py-20 text-gray-400">还没有主题，快来出题！</div>
+          {(tab === 'today' ? todayThemes : themes).length === 0 && (
+            <div className="text-center py-20 text-gray-400">
+              {tab === 'today' ? '今日暂无主题，管理员还没出题' : '还没有主题，快来出题！'}
+            </div>
           )}
         </div>
       )}

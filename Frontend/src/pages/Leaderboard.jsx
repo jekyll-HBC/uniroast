@@ -44,7 +44,7 @@ export default function Leaderboard() {
       <div className="flex space-x-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
         <button
           onClick={() => setSelectedTheme(null)}
-          className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition
+          className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition
             ${!selectedTheme ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600'}`}
         >
           全部
@@ -53,7 +53,7 @@ export default function Leaderboard() {
           <button
             key={t.id}
             onClick={() => setSelectedTheme(t.id)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition
+            className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition
               ${selectedTheme === t.id ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600'}`}
           >
             {t.emoji} {t.title}

@@ -3,12 +3,18 @@ from sqlalchemy.orm import Session
 from database import get_db
 from auth import get_current_user
 import models, schemas
+from datetime import date
 
 router = APIRouter(prefix="/themes", tags=["themes"])
 
 @router.get("/", response_model=list[schemas.ThemeOut])
-def list_themes(db: Session = Depends(get_db)):
-    themes = db.query(models.Theme).order_by(models.Theme.is_official.desc(), models.Theme.created_at.desc()).all()
+def list_themes(today: bool = False, db: Session = Depends(get_db)):
+    q = db.query(models.Theme)
+    if today:
+        q = q.filter(models.Theme.active_date == date.today())
+    else:
+        q = q.order_by(models.Theme.is_official.desc(), models.Theme.created_at.desc())
+    themes = q.all()
     result = []
     for t in themes:
         out = schemas.ThemeOut.model_validate(t)
