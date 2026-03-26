@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import get_db
 from auth import get_current_user
 from ai_service import generate_roast
@@ -64,24 +65,24 @@ def vote(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    existing = db.query(models.Vote).filter(
-        models.Vote.user_id == current_user.id,
-        models.Vote.post_id == post_id,
-    ).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Already voted on this post")
+    db.add(models.Vote(user_id=current_user.id, post_id=post_id, score=data.score))
 
-    vote = models.Vote(user_id=current_user.id, post_id=post_id, score=data.score)
-    db.add(vote)
+    result = db.query(
+        func.count(models.Vote.id),
+        func.avg(models.Vote.score),
+    ).filter(models.Vote.post_id == post_id).one()
+    # include the new vote in the count/avg before commit
+    new_count = (result[0] or 0) + 1
+    new_avg = ((result[1] or 0) * (result[0] or 0) + data.score) / new_count
 
-    post.vote_count += 1
-    post.avg_score = ((post.avg_score * (post.vote_count - 1)) + data.score) / post.vote_count
+    post.vote_count = new_count
+    post.avg_score = new_avg
 
     db.commit()
     return schemas.VoteOut(
         post_id=post_id,
         score=data.score,
-        new_avg=post.avg_score,
-        vote_count=post.vote_count,
-        tier=schemas.score_to_tier(post.avg_score, post.vote_count),
+        new_avg=new_avg,
+        vote_count=new_count,
+        tier=schemas.score_to_tier(new_avg, new_count),
     )

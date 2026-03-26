@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import get_db
 from auth import get_current_user
 import models, schemas
@@ -9,16 +10,20 @@ router = APIRouter(prefix="/themes", tags=["themes"])
 
 @router.get("/", response_model=list[schemas.ThemeOut])
 def list_themes(today: bool = False, db: Session = Depends(get_db)):
+    post_counts = dict(
+        db.query(models.Post.theme_id, func.count(models.Post.id))
+        .group_by(models.Post.theme_id)
+        .all()
+    )
     q = db.query(models.Theme)
     if today:
         q = q.filter(models.Theme.active_date == date.today())
     else:
         q = q.order_by(models.Theme.is_official.desc(), models.Theme.created_at.desc())
-    themes = q.all()
     result = []
-    for t in themes:
+    for t in q.all():
         out = schemas.ThemeOut.model_validate(t)
-        out.post_count = len(t.posts)
+        out.post_count = post_counts.get(t.id, 0)
         result.append(out)
     return result
 
@@ -42,5 +47,5 @@ def get_theme(theme_id: int, db: Session = Depends(get_db)):
     if not theme:
         raise HTTPException(status_code=404, detail="Theme not found")
     out = schemas.ThemeOut.model_validate(theme)
-    out.post_count = len(theme.posts)
+    out.post_count = db.query(func.count(models.Post.id)).filter(models.Post.theme_id == theme_id).scalar()
     return out

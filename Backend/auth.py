@@ -8,7 +8,7 @@ from database import get_db
 import models
 import os
 
-SECRET_KEY = os.getenv("SECRET_KEY", "changeme-in-production")
+SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7天
 

@@ -54,12 +54,11 @@ class Theme(Base):
 
 class Vote(Base):
     __tablename__ = "votes"
-    __table_args__ = (UniqueConstraint("user_id", "post_id", name="uq_user_post_vote"),)
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
-    score = Column(Integer, nullable=False)           # 1-5
+    score = Column(Integer, nullable=False)           # 1-5，可多次投票取平均
 
     voter = relationship("User", back_populates="votes")
     post = relationship("Post", back_populates="votes")
