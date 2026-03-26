@@ -35,6 +35,16 @@ class Post(Base):
     votes = relationship("Vote", back_populates="post")
 
 
+class Theme(Base):
+    __tablename__ = "themes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(100), nullable=False)
+    emoji = Column(String(10), nullable=False)
+    description = Column(String(200), nullable=True)
+    date = Column(DateTime(timezone=True), nullable=False, index=True)  # 该主题对应的日期
+
+
 class Vote(Base):
     __tablename__ = "votes"
     __table_args__ = (UniqueConstraint("user_id", "post_id", name="uq_user_post_vote"),)
