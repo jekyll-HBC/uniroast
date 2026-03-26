@@ -1,57 +1,17 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Upload, X, ArrowLeft } from 'lucide-react'
+import { Upload, X } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
 
 const TIERS = ['夯', '顶级', '人上人', 'NPC', '拉完了']
-const TIER_SCORES = { '夯': 5, '顶级': 4, '人上人': 3, 'NPC': 2, '拉完了': 1 }
 const TIER_STYLE = {
-  '夯':    { bar: 'bg-red-500',    badge: 'bg-red-500 text-white' },
-  '顶级':  { bar: 'bg-orange-400', badge: 'bg-orange-400 text-white' },
-  '人上人':{ bar: 'bg-yellow-300', badge: 'bg-yellow-300 text-gray-800' },
-  'NPC':   { bar: 'bg-gray-200',   badge: 'bg-gray-100 text-gray-600' },
-  '拉完了':{ bar: 'bg-gray-100',   badge: 'bg-white text-gray-400 border border-gray-200' },
-  '未评级':{ bar: 'bg-gray-100',   badge: 'bg-gray-100 text-gray-400' },
-}
-
-// 分布表：每个等级的帖子头像缩略图，点击滚动到帖子
-function TierDistribution({ posts, postRefs }) {
-  const grouped = TIERS.reduce((acc, t) => ({ ...acc, [t]: [] }), {})
-  posts.forEach(p => { if (grouped[p.tier]) grouped[p.tier].push(p) })
-
-  const hasAny = TIERS.some(t => grouped[t].length > 0)
-  if (!hasAny) return null
-
-  function scrollTo(postId) {
-    postRefs.current[postId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-
-  return (
-    <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
-      {TIERS.map(tier => (
-        <div key={tier} className="flex items-center border-b border-gray-50 last:border-0">
-          <div className={`w-16 shrink-0 py-2 px-3 text-sm font-bold ${TIER_STYLE[tier].badge} flex items-center justify-center`}>
-            {tier}
-          </div>
-          <div className="flex items-center space-x-1.5 px-3 py-2 overflow-x-auto scrollbar-hide flex-1">
-            {grouped[tier].length === 0 ? (
-              <span className="text-xs text-gray-300">暂无</span>
-            ) : grouped[tier].map(p => (
-              <button key={p.id} onClick={() => scrollTo(p.id)} className="shrink-0">
-                <img
-                  src={p.author.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.author.id}`}
-                  className="w-8 h-8 rounded-full border-2 border-white shadow-sm hover:scale-110 transition"
-                  alt={p.author.username}
-                  title={p.author.username}
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
+  '夯':    { badge: 'bg-red-500 text-white' },
+  '顶级':  { badge: 'bg-orange-400 text-white' },
+  '人上人':{ badge: 'bg-yellow-300 text-gray-800' },
+  'NPC':   { badge: 'bg-gray-100 text-gray-600' },
+  '拉完了':{ badge: 'bg-white text-gray-400 border border-gray-200' },
+  '未评级':{ badge: 'bg-gray-100 text-gray-400' },
 }
 
 // 打字机效果 hook
@@ -70,14 +30,13 @@ function useTypewriter(text, active) {
   return displayed
 }
 
-// 发帖弹窗
+// 发帖弹窗（保持原有逻辑不变）
 function SubmitModal({ theme, onClose, onPosted }) {
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState(null)
   const [caption, setCaption] = useState('')
-  // status: idle | uploading | posting | reveal
   const [status, setStatus] = useState('idle')
-  const [result, setResult] = useState(null) // 发布成功的 post
+  const [result, setResult] = useState(null)
   const inputRef = useRef()
 
   const aiText = useTypewriter(result?.ai_comment, status === 'reveal')
@@ -112,12 +71,10 @@ function SubmitModal({ theme, onClose, onPosted }) {
 
   const tierStyle = result ? (TIER_STYLE[result.tier] || TIER_STYLE['未评级']) : null
 
-  // 开奖界面
   if (status === 'reveal' && result) {
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
-          {/* 图片（清晰） */}
           <div className="relative">
             <img src={result.image_url} className="w-full aspect-square object-cover" alt="" />
             <div className="absolute top-3 right-3">
@@ -126,8 +83,6 @@ function SubmitModal({ theme, onClose, onPosted }) {
               </span>
             </div>
           </div>
-
-          {/* AI 评语打字机 */}
           <div className="p-5">
             <div className="flex items-start space-x-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100 mb-4">
               <span className="text-xl shrink-0">🤖</span>
@@ -150,7 +105,6 @@ function SubmitModal({ theme, onClose, onPosted }) {
     )
   }
 
-  // 等待界面
   if (status === 'uploading' || status === 'posting') {
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -172,7 +126,6 @@ function SubmitModal({ theme, onClose, onPosted }) {
     )
   }
 
-  // 正常填写界面
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md p-6">
@@ -203,7 +156,7 @@ function SubmitModal({ theme, onClose, onPosted }) {
           placeholder="写点配文？（可选）"
           maxLength={300}
           rows={2}
-        className="w-full border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-purple-400 mb-4"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-purple-400 mb-4"
         />
         <button
           onClick={handleSubmit}
@@ -217,86 +170,18 @@ function SubmitModal({ theme, onClose, onPosted }) {
   )
 }
 
-// 单个帖子卡片
-function PostCard({ post, myVote, onVote, postRef }) {
+// 双列瀑布流卡片（只显示图片 + 用户名 + 评级）
+function PostGridCard({ post }) {
   const tier = post.tier || '未评级'
   const style = TIER_STYLE[tier] || TIER_STYLE['未评级']
-
   return (
-    <div ref={postRef} className="bg-white rounded-2xl shadow-sm overflow-hidden">
-      {/* 头部 */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center space-x-3">
-          <img
-            src={post.author.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author.id}`}
-            className="w-9 h-9 rounded-full"
-            alt=""
-          />
-          <span className="font-semibold text-gray-800">{post.author.username}</span>
-        </div>
-        <span className={`text-xs font-bold px-3 py-1 rounded-full ${style.badge}`}>{tier}</span>
-      </div>
-
-      {/* 图片 */}
+    <Link to={`/post/${post.id}`} className="block bg-white rounded-2xl overflow-hidden shadow-sm active:scale-95 transition-transform">
       <img src={post.image_url} className="w-full aspect-square object-cover" alt="" />
-
-      {/* 配文 */}
-      {post.caption && (
-        <div className="px-4 pt-3">
-          <p className="text-sm text-gray-700">{post.caption}</p>
-        </div>
-      )}
-
-      {/* AI 评论（折叠，点击展开） */}
-      <AIComment comment={post.ai_comment} />
-
-      {/* 投票区 */}
-      <div className="px-4 pb-4 pt-2">
-        <div className="flex gap-1.5">
-          {TIERS.map(t => {
-            const selected = myVote === TIER_SCORES[t]
-            return (
-              <button
-                key={t}
-                onClick={() => onVote(post.id, TIER_SCORES[t])}
-                disabled={myVote !== undefined}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all
-                  ${selected ? style.badge + ' scale-105 shadow-sm' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}
-                  disabled:cursor-default`}
-              >
-                {t}
-              </button>
-            )
-          })}
-        </div>
-        {post.vote_count > 0 && (
-          <p className="text-xs text-center text-gray-400 mt-1.5">
-            {post.vote_count} 人投票
-          </p>
-        )}
+      <div className="p-2 flex items-center justify-between">
+        <span className="text-xs text-gray-600 truncate mr-1">{post.author.username}</span>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${style.badge}`}>{tier}</span>
       </div>
-    </div>
-  )
-}
-
-function AIComment({ comment }) {
-  const [open, setOpen] = useState(false)
-  if (!comment) return null
-  return (
-    <div className="mx-4 mt-3">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center space-x-1.5 text-sm text-purple-500 font-semibold py-2"
-      >
-        <span>🤖</span>
-        <span>{open ? '收起 AI 评语' : '查看 AI 评语'}</span>
-      </button>
-      {open && (
-        <div className="mt-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 border border-purple-100">
-          <p className="text-sm text-gray-700 leading-relaxed">{comment}</p>
-        </div>
-      )}
-    </div>
+    </Link>
   )
 }
 
@@ -308,18 +193,6 @@ export default function ThemePage() {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const postRefs = useRef({})
-
-  const VOTES_KEY = `votes_theme_${id}`
-  const [votes, setVotes] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(VOTES_KEY)) || {} } catch { return {} }
-  })
-
-  function saveVote(postId, score) {
-    const next = { ...votes, [postId]: score }
-    setVotes(next)
-    localStorage.setItem(VOTES_KEY, JSON.stringify(next))
-  }
 
   useEffect(() => {
     Promise.all([
@@ -331,66 +204,69 @@ export default function ThemePage() {
     }).finally(() => setLoading(false))
   }, [id])
 
-  async function handleVote(postId, score) {
-    if (!user) { navigate('/login'); return }
-    if (votes[postId] !== undefined) return
-    saveVote(postId, score)
-    try {
-      const { data } = await api.post(`/posts/${postId}/vote`, { score })
-      setPosts(ps => ps.map(p => p.id === postId
-        ? { ...p, avg_score: data.new_avg, vote_count: data.vote_count, tier: data.tier }
-        : p
-      ))
-    } catch {
-      const next = { ...votes }; delete next[postId]
-      setVotes(next); localStorage.setItem(VOTES_KEY, JSON.stringify(next))
-    }
-  }
-
   if (loading) return <div className="text-center py-20 text-gray-400">加载中...</div>
   if (!theme) return null
 
+  // 按等级分组，夯排最前
+  const grouped = TIERS.reduce((acc, t) => ({ ...acc, [t]: [] }), { '未评级': [] })
+  posts.forEach(p => { const t = p.tier || '未评级'; if (grouped[t]) grouped[t].push(p) })
+
   return (
-    <div className="max-w-lg mx-auto py-6 px-4">
-      {/* 顶부 */}
-      <div className="flex items-center space-x-3 mb-4">
-        <button onClick={() => navigate('/')} className="text-gray-400 hover:text-gray-600">
-          <ArrowLeft size={22} />
+    <div className="pb-24">
+      {/* Hero 区域 */}
+      <div className="relative bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 px-6 pt-12 pb-8">
+        <button
+          onClick={() => navigate('/')}
+          className="absolute top-4 left-4 text-white/70 hover:text-white"
+        >
+          ← 返回
         </button>
-        <span className="text-3xl">{theme.emoji}</span>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold text-gray-800">{theme.title}</h1>
-          {theme.description && <p className="text-sm text-gray-400">{theme.description}</p>}
+        <div className="text-center">
+          <div className="text-6xl mb-3">{theme.emoji}</div>
+          <h1 className="text-2xl font-bold text-white mb-1">{theme.title}</h1>
+          {theme.description && (
+            <p className="text-white/70 text-sm mb-3">{theme.description}</p>
+          )}
+          <p className="text-white/60 text-xs">{posts.length} 人已参战</p>
         </div>
-        {user && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center space-x-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-xl font-semibold text-sm shrink-0"
-          >
-            <Upload size={15} />
-            <span>参战</span>
-          </button>
+      </div>
+
+      {/* 帖子内容区 */}
+      <div className="px-3 pt-4">
+        {posts.length === 0 ? (
+          <div className="text-center py-20 text-gray-400">还没有人参战，快来第一个！</div>
+        ) : (
+          TIERS.map(tier => {
+            const tierPosts = grouped[tier]
+            if (tierPosts.length === 0) return null
+            const style = TIER_STYLE[tier]
+            return (
+              <div key={tier} className="mb-6">
+                {/* 等级标题 */}
+                <div className="flex items-center mb-2 px-1">
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full mr-2 ${style.badge}`}>{tier}</span>
+                  <span className="text-xs text-gray-400">{tierPosts.length} 人</span>
+                </div>
+                {/* 双列网格 */}
+                <div className="grid grid-cols-2 gap-2">
+                  {tierPosts.map(post => (
+                    <PostGridCard key={post.id} post={post} />
+                  ))}
+                </div>
+              </div>
+            )
+          })
         )}
       </div>
 
-      {/* 夯到拉分布表 */}
-      <TierDistribution posts={posts} postRefs={postRefs} />
-
-      {/* 帖子列表 */}
-      {posts.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">还没有人参战，快来第一个！</div>
-      ) : (
-        <div className="space-y-6">
-          {posts.map(post => (
-            <PostCard
-              key={post.id}
-              post={post}
-              myVote={votes[post.id]}
-              onVote={handleVote}
-              postRef={el => postRefs.current[post.id] = el}
-            />
-          ))}
-        </div>
+      {/* 参战 FAB */}
+      {user && (
+        <button
+          onClick={() => setShowModal(true)}
+          className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-full shadow-lg flex items-center justify-center text-2xl z-40 active:scale-95 transition-transform"
+        >
+          <Upload size={22} />
+        </button>
       )}
 
       {showModal && (
