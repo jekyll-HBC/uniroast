@@ -30,6 +30,7 @@ jobs:
           DATABASE_URL: sqlite:///./test.db
           SECRET_KEY: test-secret-key
           PYTHONPATH: .
+          OPENAI_API_KEY: sk-test-placeholder
         run: pytest --tb=short -q
 
   frontend:
