@@ -1,156 +1,166 @@
-import { useState, useEffect } from 'react'
-import { Trophy, Upload } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Plus, X } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
 
-const VOTE_OPTIONS = [
-  { emoji: '😐', label: '一般' },
-  { emoji: '😊', label: '还行' },
-  { emoji: '😄', label: '不错' },
-  { emoji: '😍', label: '很赞' },
-  { emoji: '🤩', label: '绝了' },
-]
-
-const rankBadge = { 1: '🥇', 2: '🥈', 3: '🥉' }
-
-const todayTheme = {
-  title: "最难以名状的食堂美食",
-  emoji: "🍜",
-  description: "展示你在食堂吃到的最离谱的饭菜"
+const TIER_COLORS = {
+  '夯': 'bg-red-500 text-white',
+  '顶级': 'bg-orange-400 text-white',
+  '人上人': 'bg-yellow-300 text-gray-800',
+  'NPC': 'bg-gray-100 text-gray-600',
+  '拉完了': 'bg-white text-gray-400 border border-gray-200',
 }
 
-export default function Home() {
-  const [posts, setPosts] = useState([])
-  const [votes, setVotes] = useState({})
-  const [loading, setLoading] = useState(true)
-  const { user } = useAuth()
+function CreateThemeModal({ onClose, onCreated }) {
+  const [form, setForm] = useState({ title: '', emoji: '🔥', description: '' })
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    api.get('/posts/').then(({ data }) => {
-      setPosts(data)
-    }).finally(() => setLoading(false))
-  }, [])
-
-  async function handleVote(postId, index) {
-    if (votes[postId] !== undefined) return
-    setVotes(v => ({ ...v, [postId]: index }))
+  async function handleSubmit() {
+    if (!form.title.trim()) return
+    setLoading(true)
     try {
-      const { data } = await api.post(`/posts/${postId}/vote`, { score: index + 1 })
-      setPosts(ps => ps.map(p => p.id === postId
-        ? { ...p, avg_score: data.new_avg, vote_count: data.vote_count }
-        : p
-      ))
-    } catch {
-      setVotes(v => { const n = { ...v }; delete n[postId]; return n })
+      const { data } = await api.post('/themes/', form)
+      onCreated(data)
+      onClose()
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="max-w-lg mx-auto py-6 px-4">
-      {/* 今日主题横幅 */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white mb-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center space-x-2 mb-2">
-              <span className="text-4xl">{todayTheme.emoji}</span>
-              <span className="text-sm font-semibold bg-white/20 px-3 py-1 rounded-full">今日挑战</span>
-            </div>
-            <h2 className="text-2xl font-bold mb-1">{todayTheme.title}</h2>
-            <p className="text-white/90 text-sm">{todayTheme.description}</p>
-          </div>
-          <button className="bg-white text-purple-600 px-5 py-3 rounded-xl font-bold hover:bg-purple-50 transition flex items-center space-x-2 shrink-0 ml-4">
-            <Upload size={18} />
-            <span>参战</span>
-          </button>
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold">创建新主题</h3>
+          <button onClick={onClose}><X size={20} className="text-gray-400" /></button>
         </div>
+        <div className="flex space-x-2 mb-3">
+          <input
+            value={form.emoji}
+            onChange={e => setForm(f => ({ ...f, emoji: e.target.value }))}
+            className="w-16 border border-gray-200 rounded-xl px-3 py-2 text-center text-xl focus:outline-none focus:border-purple-400"
+            maxLength={2}
+          />
+          <input
+            value={form.title}
+            onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+            placeholder="主题名称"
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-400"
+          />
+        </div>
+        <textarea
+          value={form.description}
+          onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+          placeholder="描述一下这个主题（可选）"
+          rows={2}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-purple-400 mb-4"
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={!form.title.trim() || loading}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold disabled:opacity-50"
+        >
+          {loading ? '创建中...' : '创建'}
+        </button>
       </div>
+    </div>
+  )
+}
 
-      {/* 今日战况 */}
+export default function Home() {
+  const [themes, setThemes] = useState([])
+  const [todayThemes, setTodayThemes] = useState([])
+  const [tab, setTab] = useState('today') // 'today' | 'all'
+  const [loading, setLoading] = useState(true)
+  const [showCreate, setShowCreate] = useState(false)
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/themes/?today=true'),
+      api.get('/themes/'),
+    ]).then(([todayRes, allRes]) => {
+      setTodayThemes(todayRes.data)
+      setThemes(allRes.data)
+      // 如果没有今日主题，默认显示全部
+      if (todayRes.data.length === 0) setTab('all')
+    }).finally(() => setLoading(false))
+  }, [])
+
+  return (
+    <div className="max-w-lg mx-auto py-6 px-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-800 flex items-center">
-          <Trophy className="text-yellow-500 mr-2" size={20} />
-          今日战况
-        </h3>
-        <span className="text-sm text-gray-400">实时更新中...</span>
+        <h1 className="text-2xl font-bold">🔥 主题</h1>
+        {user && (
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center space-x-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-xl font-semibold text-sm"
+          >
+            <Plus size={16} />
+            <span>出题</span>
+          </button>
+        )}
       </div>
 
-      {/* 帖子列表 */}
+      {/* Tab 切换 */}
+      <div className="flex space-x-2 mb-4">
+        <button
+          onClick={() => setTab('today')}
+          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${tab === 'today' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+        >
+          今日主题
+        </button>
+        <button
+          onClick={() => setTab('all')}
+          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${tab === 'all' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+        >
+          全部主题
+        </button>
+      </div>
+
       {loading ? (
         <div className="text-center py-20 text-gray-400">加载中...</div>
-      ) : posts.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">还没有人参战，快来第一个！</div>
       ) : (
-        <div className="space-y-6">
-          {posts.map((post, idx) => (
-            <div key={post.id} className="bg-white rounded-2xl shadow-md overflow-hidden">
-              {/* 用户信息 */}
-              <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={post.author.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author.id}`}
-                    className="w-9 h-9 rounded-full"
-                    alt=""
-                  />
-                  <span className="font-semibold text-gray-800">{post.author.username}</span>
+        <div className="space-y-3">
+          {(tab === 'today' ? todayThemes : themes).map(theme => (
+            <button
+              key={theme.id}
+              onClick={() => navigate(`/theme/${theme.id}`)}
+              className="w-full bg-white rounded-2xl shadow-sm p-4 flex items-center space-x-4 hover:shadow-md transition text-left"
+            >
+              <span className="text-4xl">{theme.emoji}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2">
+                  <p className="font-bold text-gray-800 truncate">{theme.title}</p>
+                  {theme.is_official && (
+                    <span className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full shrink-0">官方</span>
+                  )}
                 </div>
-                {rankBadge[idx + 1] && <span className="text-2xl">{rankBadge[idx + 1]}</span>}
-              </div>
-
-              {/* 图片 */}
-              <img src={post.image_url} className="w-full aspect-[4/3] object-cover" alt="" />
-
-              {/* AI 评论区 */}
-              <div className="mx-4 mt-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
-                <div className="flex items-start space-x-3">
-                  <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-full w-8 h-8 flex items-center justify-center shrink-0 text-sm">
-                    🤖
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-purple-600 mb-1">AI 毒舌评委</p>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {post.ai_comment || 'AI 评委正在思考中...'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 投票区 */}
-              <div className="px-4 pt-3 pb-1">
-                <p className="text-xs text-gray-400 mb-2 text-center">你觉得这道菜怎么样？</p>
-                <div className="flex justify-between gap-1">
-                  {VOTE_OPTIONS.map((opt, i) => {
-                    const selected = votes[post.id] === i
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => handleVote(post.id, i)}
-                        disabled={!user || votes[post.id] !== undefined}
-                        className={`flex-1 flex flex-col items-center py-2 rounded-xl transition-all
-                          ${selected ? 'bg-purple-100 scale-110 shadow-sm' : 'hover:bg-gray-50 active:scale-95'}
-                          disabled:opacity-50`}
-                      >
-                        <span className="text-2xl">{opt.emoji}</span>
-                        <span className={`text-xs mt-0.5 ${selected ? 'text-purple-600 font-semibold' : 'text-gray-400'}`}>
-                          {opt.label}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-                {post.vote_count > 0 && (
-                  <p className="text-xs text-center text-gray-400 mt-1">
-                    {post.vote_count} 人投票 · 平均 {post.avg_score.toFixed(1)} 分
-                  </p>
+                {theme.description && (
+                  <p className="text-sm text-gray-400 truncate mt-0.5">{theme.description}</p>
                 )}
               </div>
-
-              {/* 配文 */}
-              <div className="px-4 pb-4 pt-2">
-                {post.caption && <p className="text-sm text-gray-600">{post.caption}</p>}
+              <div className="text-right shrink-0">
+                <p className="text-lg font-bold text-purple-600">{theme.post_count}</p>
+                <p className="text-xs text-gray-400">参战</p>
               </div>
-            </div>
+            </button>
           ))}
+          {(tab === 'today' ? todayThemes : themes).length === 0 && (
+            <div className="text-center py-20 text-gray-400">
+              {tab === 'today' ? '今日暂无主题，管理员还没出题' : '还没有主题，快来出题！'}
+            </div>
+          )}
         </div>
+      )}
+
+      {showCreate && (
+        <CreateThemeModal
+          onClose={() => setShowCreate(false)}
+          onCreated={t => setThemes(ts => [t, ...ts])}
+        />
       )}
     </div>
   )

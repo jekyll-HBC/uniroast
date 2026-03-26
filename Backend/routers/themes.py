@@ -2,18 +2,50 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import get_db
+from auth import get_current_user
 import models, schemas
-from datetime import datetime, timezone
+from datetime import date
 
 router = APIRouter(prefix="/themes", tags=["themes"])
 
+@router.get("/", response_model=list[schemas.ThemeOut])
+def list_themes(today: bool = False, db: Session = Depends(get_db)):
+    post_counts = dict(
+        db.query(models.Post.theme_id, func.count(models.Post.id))
+        .group_by(models.Post.theme_id)
+        .all()
+    )
+    q = db.query(models.Theme)
+    if today:
+        q = q.filter(models.Theme.active_date == date.today())
+    else:
+        q = q.order_by(models.Theme.is_official.desc(), models.Theme.created_at.desc())
+    result = []
+    for t in q.all():
+        out = schemas.ThemeOut.model_validate(t)
+        out.post_count = post_counts.get(t.id, 0)
+        result.append(out)
+    return result
 
-@router.get("/today", response_model=schemas.ThemeOut)
-def get_today_theme(db: Session = Depends(get_db)):
-    today = datetime.now(timezone.utc).date()
-    theme = db.query(models.Theme).filter(
-        func.date(models.Theme.date) == today
-    ).first()
+@router.post("/", response_model=schemas.ThemeOut, status_code=201)
+def create_theme(
+    data: schemas.ThemeCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    theme = models.Theme(**data.model_dump(), creator_id=current_user.id)
+    db.add(theme)
+    db.commit()
+    db.refresh(theme)
+    out = schemas.ThemeOut.model_validate(theme)
+    out.post_count = 0
+    return out
+
+@router.get("/{theme_id}", response_model=schemas.ThemeOut)
+def get_theme(theme_id: int, db: Session = Depends(get_db)):
+    theme = db.query(models.Theme).filter(models.Theme.id == theme_id).first()
     if not theme:
-        raise HTTPException(status_code=404, detail="No theme set for today")
-    return theme
+        raise HTTPException(status_code=404, detail="Theme not found")
+    out = schemas.ThemeOut.model_validate(theme)
+    out.post_count = db.query(func.count(models.Post.id)).filter(models.Post.theme_id == theme_id).scalar()
+    return out

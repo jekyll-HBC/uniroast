@@ -1,61 +1,74 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { Home, User, LogIn, LogOut } from 'lucide-react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Home, User, LogIn, Trophy } from 'lucide-react'
 import { useEffect } from 'react'
 import useAuth from '../store/useAuth'
 
 export default function Navbar() {
-  const { user, token, logout, fetchMe } = useAuth()
+  const { user, token, fetchMe } = useAuth()
+  const location = useLocation()
   const navigate = useNavigate()
 
   useEffect(() => {
     if (token && !user) fetchMe()
   }, [])
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+  const active = (path) =>
+    location.pathname === path
+      ? 'text-purple-600'
+      : 'text-gray-400'
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-4xl mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl">🔥</span>
-            <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              UniRoast
-            </span>
+    <>
+      {/* 顶部 Logo 栏 */}
+      <header className="bg-white shadow-sm sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <Link to="/" className="flex items-center space-x-1.5">
+          <span className="text-2xl">🔥</span>
+          <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            UniRoast
+          </span>
+        </Link>
+        {!user && (
+          <Link
+            to="/login"
+            className="flex items-center space-x-1 bg-purple-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold"
+          >
+            <LogIn size={16} />
+            <span>登录</span>
           </Link>
+        )}
+      </header>
 
-          <div className="flex items-center space-x-6">
-            <Link to="/" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600">
-              <Home size={20} />
-              <span>首页</span>
-            </Link>
-
+      {/* 底部 Tab Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 safe-area-pb">
+        <div className="flex items-center justify-around py-2">
+          <Link to="/" className={`flex flex-col items-center py-2 px-6 ${active('/')}`}>
+            <Home size={24} />
+            <span className="text-xs mt-0.5">首页</span>
+          </Link>
+          <Link to="/leaderboard" className={`flex flex-col items-center py-2 px-6 ${active('/leaderboard')}`}>
+            <Trophy size={24} />
+            <span className="text-xs mt-0.5">排行榜</span>
+          </Link>
+          <Link
+            to={user ? '/profile' : '/login'}
+            className={`flex flex-col items-center py-2 px-6 ${active('/profile')}`}
+          >
             {user ? (
-              <>
-                <Link to="/profile" className="flex items-center space-x-1 text-gray-700 hover:text-purple-600">
-                  <User size={20} />
-                  <span>{user.username}</span>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-1 text-gray-500 hover:text-red-500"
-                >
-                  <LogOut size={20} />
-                  <span>退出</span>
-                </button>
-              </>
+              <img
+                src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
+                className="w-7 h-7 rounded-full"
+                alt=""
+              />
             ) : (
-              <Link to="/login" className="flex items-center space-x-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
-                <LogIn size={20} />
-                <span>登录</span>
-              </Link>
+              <User size={24} />
             )}
-          </div>
+            <span className="text-xs mt-0.5">{user ? user.username : '我的'}</span>
+          </Link>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* 底部占位，防止内容被 Tab Bar 遮住 */}
+      <div className="h-20" />
+    </>
   )
 }

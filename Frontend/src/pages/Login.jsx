@@ -47,7 +47,7 @@ export default function Login() {
               <input
                 type="text"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="输入用户名"
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
@@ -60,7 +60,7 @@ export default function Login() {
             <input
               type="email"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="your@email.com"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -72,7 +72,7 @@ export default function Login() {
             <input
               type="password"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="输入密码"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -93,7 +93,7 @@ export default function Login() {
         <div className="mt-6 text-center">
           <button
             onClick={() => { setIsLogin(!isLogin); setError('') }}
-            className="text-purple-600 hover:text-purple-700 font-medium"
+            className="text-purple-600 hover:text-purple-700 font-medium py-3 px-4"
           >
             {isLogin ? '还没有账号？去注册' : '已有账号？去登录'}
           </button>
