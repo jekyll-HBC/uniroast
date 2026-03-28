@@ -179,3 +179,45 @@ def test_score_to_tier():
     assert score_to_tier(2.8, 3) == "人上人"
     assert score_to_tier(1.8, 3) == "NPC"
     assert score_to_tier(1.0, 3) == "拉完了"
+
+
+# ── end-to-end flow ───────────────────────────────────────────────────────────
+
+def test_full_user_journey(client):
+    """E2E: 注册 → 登录 → 创建主题 → 发帖（含AI吐槽）→ 投票 → 排行榜"""
+    # 1. 注册
+    r = client.post("/auth/register", json={
+        "username": "e2e_user", "email": "e2e@test.com", "password": "E2ePass123!"
+    })
+    assert r.status_code == 201
+    headers = {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    # 2. 验证登录状态
+    me = client.get("/auth/me", headers=headers)
+    assert me.json()["username"] == "e2e_user"
+
+    # 3. 创建主题
+    theme = client.post("/themes/", json={"title": "最尴尬的一刻", "emoji": "😬"}, headers=headers)
+    assert theme.status_code == 201
+    theme_id = theme.json()["id"]
+
+    # 4. 发帖（mock AI 避免真实 API 调用）
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="这照片让我笑出声了")):
+        post = client.post("/posts/", json={
+            "theme_id": theme_id,
+            "image_url": "https://example.com/photo.jpg",
+            "caption": "我在食堂摔了一跤"
+        }, headers=headers)
+    assert post.status_code == 201
+    post_id = post.json()["id"]
+    assert post.json()["ai_comment"] == "这照片让我笑出声了"
+
+    # 5. 投票
+    vote = client.post(f"/posts/{post_id}/vote", json={"score": 4}, headers=headers)
+    assert vote.status_code == 200
+    assert vote.json()["new_avg"] == 4.0
+
+    # 6. 排行榜：帖子出现且分数正确
+    leaderboard = client.get("/posts/")
+    posts = leaderboard.json()
+    assert any(p["id"] == post_id and p["avg_score"] == 4.0 for p in posts)
