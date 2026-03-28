@@ -58,6 +58,8 @@ export default function Navbar() {
                 src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
                 className="w-7 h-7 rounded-full"
                 alt=""
+                loading="lazy"
+                onError={e => { e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}` }}
               />
             ) : (
               <User size={24} />

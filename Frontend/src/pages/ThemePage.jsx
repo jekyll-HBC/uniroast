@@ -76,7 +76,7 @@ function SubmitModal({ theme, onClose, onPosted }) {
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
           <div className="relative">
-            <img src={result.image_url} className="w-full aspect-square object-cover" alt="" />
+            <img src={result.image_url} className="w-full aspect-square object-cover" alt="" loading="lazy" onError={e => { e.target.style.display='none' }} />
             <div className="absolute top-3 right-3">
               <span className={`text-sm font-bold px-3 py-1.5 rounded-full shadow ${tierStyle.badge}`}>
                 {result.tier || '未评级'}
@@ -110,7 +110,7 @@ function SubmitModal({ theme, onClose, onPosted }) {
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
           <div className="relative">
-            <img src={preview} className="w-full aspect-square object-cover blur-sm scale-105" alt="" />
+            <img src={preview} className="w-full aspect-square object-cover blur-sm scale-105" alt="" loading="lazy" />
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
               <p className="text-white font-bold text-lg mb-2">
                 {status === 'uploading' ? '上传中...' : '🤖 AI 评委正在吐槽中...'}
@@ -134,7 +134,7 @@ function SubmitModal({ theme, onClose, onPosted }) {
           <button onClick={onClose}><X size={20} className="text-gray-400" /></button>
         </div>
         {preview ? (
-          <img src={preview} className="w-full aspect-[4/3] object-cover rounded-xl mb-2" alt="" />
+          <img src={preview} className="w-full aspect-[4/3] object-cover rounded-xl mb-2" alt="" loading="lazy" />
         ) : (
           <button
             onClick={() => inputRef.current.click()}
@@ -176,7 +176,7 @@ function PostGridCard({ post }) {
   const style = TIER_STYLE[tier] || TIER_STYLE['未评级']
   return (
     <Link to={`/post/${post.id}`} className="block bg-white rounded-2xl overflow-hidden shadow-sm active:scale-95 transition-transform">
-      <img src={post.image_url} className="w-full aspect-square object-cover" alt="" />
+      <img src={post.image_url} className="w-full aspect-square object-cover" alt="" loading="lazy" onError={e => { e.target.style.display='none' }} />
       <div className="p-2 flex items-center justify-between">
         <span className="text-xs text-gray-600 truncate mr-1">{post.author.username}</span>
         <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${style.badge}`}>{tier}</span>
