@@ -82,18 +82,24 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="max-w-lg mx-auto py-6 px-4">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">🔥 主题</h1>
-        {user && (
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center space-x-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-xl font-semibold text-sm"
-          >
-            <Plus size={16} />
-            <span>出题</span>
-          </button>
-        )}
+    <div className="max-w-lg mx-auto px-4 pt-4 pb-6">
+      {/* 页面标题区 */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-2xl p-5 mb-5 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">今日挑战 🔥</h1>
+            <p className="text-purple-100 text-sm mt-0.5">选一个主题，上传你的作品</p>
+          </div>
+          {user && (
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center space-x-1 bg-white/20 backdrop-blur text-white px-3 py-2 rounded-xl font-semibold text-sm border border-white/30"
+            >
+              <Plus size={16} />
+              <span>出题</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tab 切换 */}
@@ -120,9 +126,11 @@ export default function Home() {
             <button
               key={theme.id}
               onClick={() => navigate(`/theme/${theme.id}`)}
-              className="w-full bg-white rounded-2xl shadow-sm p-4 flex items-center space-x-4 hover:shadow-md transition text-left"
+              className="w-full bg-white rounded-2xl shadow-sm p-4 flex items-center space-x-4 active:scale-95 transition-transform text-left border border-gray-50"
             >
-              <span className="text-4xl">{theme.emoji}</span>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center shrink-0 text-3xl">
+                {theme.emoji}
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
                   <p className="font-bold text-gray-800 truncate">{theme.title}</p>
@@ -135,7 +143,7 @@ export default function Home() {
                 )}
               </div>
               <div className="text-right shrink-0">
-                <p className="text-lg font-bold text-purple-600">{theme.post_count}</p>
+                <p className="text-xl font-bold text-purple-600">{theme.post_count}</p>
                 <p className="text-xs text-gray-400">参战</p>
               </div>
             </button>
