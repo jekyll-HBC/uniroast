@@ -1,122 +1,167 @@
-import { Trophy, Upload } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Plus, X } from 'lucide-react'
+import api from '../api'
+import useAuth from '../store/useAuth'
 
-export default function Home() {
-  // 模拟数据
-  const todayTheme = {
-    title: "最难以名状的食堂美食",
-    emoji: "🍜",
-    description: "展示你在食堂吃到的最离谱的饭菜"
+const TIER_COLORS = {
+  '夯': 'bg-red-500 text-white',
+  '顶级': 'bg-orange-400 text-white',
+  '人上人': 'bg-yellow-300 text-gray-800',
+  'NPC': 'bg-gray-100 text-gray-600',
+  '拉完了': 'bg-white text-gray-400 border border-gray-200',
+}
+
+function CreateThemeModal({ onClose, onCreated }) {
+  const [form, setForm] = useState({ title: '', emoji: '🔥', description: '' })
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit() {
+    if (!form.title.trim()) return
+    setLoading(true)
+    try {
+      const { data } = await api.post('/themes/', form)
+      onCreated(data)
+      onClose()
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const mockPosts = [
-    {
-      id: 1,
-      username: "张三",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
-      image: "https://picsum.photos/400/300?random=1",
-      caption: "我觉得这应该是土豆炖牛肉...吧？",
-      aiRoast: "这份菜成功证明了食堂阿姨是色盲，因为这个颜色在自然界根本不存在 🤢",
-      likes: 42,
-      rank: 1
-    },
-    {
-      id: 2,
-      username: "李四",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
-      image: "https://picsum.photos/400/300?random=2",
-      caption: "这是啥我真看不出来",
-      aiRoast: "AI已被你的食物送进ICU抢救，建议你也去挂个号 💀",
-      likes: 38,
-      rank: 2
-    }
-  ]
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold">创建新主题</h3>
+          <button onClick={onClose}><X size={20} className="text-gray-400" /></button>
+        </div>
+        <div className="flex space-x-2 mb-3">
+          <input
+            value={form.emoji}
+            onChange={e => setForm(f => ({ ...f, emoji: e.target.value }))}
+            className="w-16 border border-gray-200 rounded-xl px-3 py-2 text-center text-xl focus:outline-none focus:border-purple-400"
+            maxLength={2}
+          />
+          <input
+            value={form.title}
+            onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+            placeholder="主题名称"
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-400"
+          />
+        </div>
+        <textarea
+          value={form.description}
+          onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+          placeholder="描述一下这个主题（可选）"
+          rows={2}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-purple-400 mb-4"
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={!form.title.trim() || loading}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold disabled:opacity-50"
+        >
+          {loading ? '创建中...' : '创建'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default function Home() {
+  const [themes, setThemes] = useState([])
+  const [todayThemes, setTodayThemes] = useState([])
+  const [tab, setTab] = useState('today') // 'today' | 'all'
+  const [loading, setLoading] = useState(true)
+  const [showCreate, setShowCreate] = useState(false)
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/themes/?today=true'),
+      api.get('/themes/'),
+    ]).then(([todayRes, allRes]) => {
+      setTodayThemes(todayRes.data)
+      setThemes(allRes.data)
+      // 如果没有今日主题，默认显示全部
+      if (todayRes.data.length === 0) setTab('all')
+    }).finally(() => setLoading(false))
+  }, [])
 
   return (
-    <div className="max-w-2xl mx-auto py-6 px-4">
-      {/* 今日主题横幅 */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white mb-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center space-x-2 mb-2">
-              <span className="text-4xl">{todayTheme.emoji}</span>
-              <span className="text-sm font-semibold bg-white/20 px-3 py-1 rounded-full">
-                今日挑战
-              </span>
-            </div>
-            <h2 className="text-2xl font-bold mb-1">{todayTheme.title}</h2>
-            <p className="text-white/90">{todayTheme.description}</p>
-          </div>
-          <button className="bg-white text-purple-600 px-6 py-3 rounded-xl font-bold hover:bg-purple-50 transition flex items-center space-x-2">
-            <Upload size={20} />
-            <span>参战</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 排行榜提示 */}
+    <div className="max-w-lg mx-auto py-6 px-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-800 flex items-center">
-          <Trophy className="text-yellow-500 mr-2" />
-          今日战况
-        </h3>
-        <span className="text-sm text-gray-500">实时更新中...</span>
+        <h1 className="text-2xl font-bold">🔥 主题</h1>
+        {user && (
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center space-x-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-xl font-semibold text-sm"
+          >
+            <Plus size={16} />
+            <span>出题</span>
+          </button>
+        )}
       </div>
 
-      {/* 帖子列表 */}
-      <div className="space-y-6">
-        {mockPosts.map(post => (
-          <div key={post.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-            {/* 用户信息 */}
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center space-x-3">
-                <img src={post.avatar} className="w-10 h-10 rounded-full" alt="" />
-                <span className="font-semibold text-gray-800">{post.username}</span>
-              </div>
-              {/* 排名徽章 */}
-              {post.rank <= 3 && (
-                <div className="text-3xl">
-                  {post.rank === 1 ? '🥇' : post.rank === 2 ? '🥈' : '🥉'}
-                </div>
-              )}
-            </div>
-
-            {/* 图片 */}
-            <img src={post.image} className="w-full h-64 object-cover" alt="" />
-
-            {/* 用户说明 */}
-            <div className="p-4">
-              <p className="text-gray-700 mb-3">{post.caption}</p>
-
-              {/* AI评论（高亮） */}
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border-l-4 border-purple-500">
-                <div className="flex items-start space-x-2">
-                  <span className="text-2xl">🤖</span>
-                  <div>
-                    <p className="text-xs font-bold text-purple-700 mb-1">AI毒舌评委</p>
-                    <p className="text-sm text-gray-700 italic">{post.aiRoast}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 互动按钮 */}
-            <div className="px-4 pb-4 flex items-center space-x-4">
-              <button className="flex items-center space-x-1 text-gray-600 hover:text-red-500">
-                <span>❤️</span>
-                <span className="font-semibold">{post.likes}</span>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-600 hover:text-blue-500">
-                <span>💬</span>
-                <span>评论</span>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-600 hover:text-green-500">
-                <span>⭐</span>
-                <span>投票</span>
-              </button>
-            </div>
-          </div>
-        ))}
+      {/* Tab 切换 */}
+      <div className="flex space-x-2 mb-4">
+        <button
+          onClick={() => setTab('today')}
+          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${tab === 'today' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+        >
+          今日主题
+        </button>
+        <button
+          onClick={() => setTab('all')}
+          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${tab === 'all' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500'}`}
+        >
+          全部主题
+        </button>
       </div>
+
+      {loading ? (
+        <div className="text-center py-20 text-gray-400">加载中...</div>
+      ) : (
+        <div className="space-y-3">
+          {(tab === 'today' ? todayThemes : themes).map(theme => (
+            <button
+              key={theme.id}
+              onClick={() => navigate(`/theme/${theme.id}`)}
+              className="w-full bg-white rounded-2xl shadow-sm p-4 flex items-center space-x-4 hover:shadow-md transition text-left"
+            >
+              <span className="text-4xl">{theme.emoji}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2">
+                  <p className="font-bold text-gray-800 truncate">{theme.title}</p>
+                  {theme.is_official && (
+                    <span className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full shrink-0">官方</span>
+                  )}
+                </div>
+                {theme.description && (
+                  <p className="text-sm text-gray-400 truncate mt-0.5">{theme.description}</p>
+                )}
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-lg font-bold text-purple-600">{theme.post_count}</p>
+                <p className="text-xs text-gray-400">参战</p>
+              </div>
+            </button>
+          ))}
+          {(tab === 'today' ? todayThemes : themes).length === 0 && (
+            <div className="text-center py-20 text-gray-400">
+              {tab === 'today' ? '今日暂无主题，管理员还没出题' : '还没有主题，快来出题！'}
+            </div>
+          )}
+        </div>
+      )}
+
+      {showCreate && (
+        <CreateThemeModal
+          onClose={() => setShowCreate(false)}
+          onCreated={t => setThemes(ts => [t, ...ts])}
+        />
+      )}
     </div>
   )
 }
