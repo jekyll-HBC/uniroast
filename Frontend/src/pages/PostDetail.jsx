@@ -3,17 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
-
-const TIERS = ['夯', '顶级', '人上人', 'NPC', '拉完了']
-const TIER_SCORES = { '夯': 5, '顶级': 4, '人上人': 3, 'NPC': 2, '拉完了': 1 }
-const TIER_STYLE = {
-  '夯':    { badge: 'bg-red-500 text-white' },
-  '顶级':  { badge: 'bg-orange-400 text-white' },
-  '人上人':{ badge: 'bg-yellow-300 text-gray-800' },
-  'NPC':   { badge: 'bg-gray-100 text-gray-600' },
-  '拉完了':{ badge: 'bg-white text-gray-400 border border-gray-200' },
-  '未评级':{ badge: 'bg-gray-100 text-gray-400' },
-}
+import { TIERS, TIER_SCORES, TIER_STYLE } from '../constants/tier'
 
 export default function PostDetail() {
   const { id } = useParams()

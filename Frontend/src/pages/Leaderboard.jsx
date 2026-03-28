@@ -1,15 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Trophy } from 'lucide-react'
 import api from '../api'
-
-const TIER_BADGE = {
-  '夯':     'bg-red-500 text-white',
-  '顶级':   'bg-orange-400 text-white',
-  '人上人': 'bg-yellow-300 text-gray-800',
-  'NPC':    'bg-gray-100 text-gray-600',
-  '拉完了': 'bg-white text-gray-400 border border-gray-200',
-  '未评级': 'bg-gray-100 text-gray-400',
-}
+import { TIER_STYLE } from '../constants/tier'
 
 export default function Leaderboard() {
   const [posts, setPosts] = useState([])
@@ -80,7 +72,7 @@ export default function Leaderboard() {
                 )}
               </div>
               <div className="text-right shrink-0 space-y-1">
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full block ${TIER_BADGE[post.tier || '未评级']}`}>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full block ${(TIER_STYLE[post.tier || '未评级'] || TIER_STYLE['未评级']).badge}`}>
                   {post.tier || '未评级'}
                 </span>
                 <p className="text-xs text-gray-400">⭐ {post.avg_score?.toFixed(1) ?? '-'} · {post.vote_count} 票</p>

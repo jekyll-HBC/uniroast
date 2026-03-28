@@ -4,14 +4,6 @@ import { Plus, X } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
 
-const TIER_COLORS = {
-  '夯': 'bg-red-500 text-white',
-  '顶级': 'bg-orange-400 text-white',
-  '人上人': 'bg-yellow-300 text-gray-800',
-  'NPC': 'bg-gray-100 text-gray-600',
-  '拉完了': 'bg-white text-gray-400 border border-gray-200',
-}
-
 function CreateThemeModal({ onClose, onCreated }) {
   const [form, setForm] = useState({ title: '', emoji: '🔥', description: '' })
   const [loading, setLoading] = useState(false)

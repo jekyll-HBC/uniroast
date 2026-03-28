@@ -2,15 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useAuth from '../store/useAuth'
 import api from '../api'
-
-const TIER_BADGE = {
-  '夯':     'bg-red-500 text-white',
-  '顶级':   'bg-orange-400 text-white',
-  '人上人': 'bg-yellow-300 text-gray-800',
-  'NPC':    'bg-gray-100 text-gray-600',
-  '拉完了': 'bg-white text-gray-400 border border-gray-200',
-  '未评级': 'bg-gray-100 text-gray-400',
-}
+import { TIER_STYLE } from '../constants/tier'
 
 export default function Profile() {
   const { user } = useAuth()
@@ -77,7 +69,7 @@ export default function Profile() {
               <img src={post.image_url} className="w-24 h-24 object-cover shrink-0" alt="" />
               <div className="p-3 flex flex-col justify-between flex-1 min-w-0">
                 <div>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${TIER_BADGE[post.tier || '未评级']}`}>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${(TIER_STYLE[post.tier || '未评级'] || TIER_STYLE['未评级']).badge}`}>
                     {post.tier || '未评级'}
                   </span>
                   {post.caption && <p className="text-sm text-gray-700 mt-1 truncate">{post.caption}</p>}
