@@ -83,7 +83,7 @@ export default function Leaderboard() {
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full block ${TIER_BADGE[post.tier || '未评级']}`}>
                   {post.tier || '未评级'}
                 </span>
-                <p className="text-xs text-gray-400">{post.vote_count} 票</p>
+                <p className="text-xs text-gray-400">⭐ {post.avg_score?.toFixed(1) ?? '-'} · {post.vote_count} 票</p>
               </div>
             </div>
           ))}
