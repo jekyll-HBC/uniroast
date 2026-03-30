@@ -70,6 +70,8 @@ export default function PostDetail() {
           src={post.author.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author.id}`}
           className="w-8 h-8 rounded-full mr-2"
           alt=""
+          loading="lazy"
+          onError={e => { e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author.id}` }}
         />
         <span className="font-semibold text-gray-800 flex-1">{post.author.username}</span>
         <span className={`text-xs font-bold px-3 py-1 rounded-full ${style.badge}`}>{tier}</span>
@@ -77,7 +79,7 @@ export default function PostDetail() {
 
       {/* 图片（双击投夯） */}
       <div className="relative" onClick={handleImageTap}>
-        <img src={post.image_url} className="w-full aspect-square object-cover" alt="" />
+        <img src={post.image_url} className="w-full aspect-square object-cover" alt="" loading="lazy" onError={e => { e.target.style.display='none' }} />
         {showHeart && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <span className="text-7xl animate-ping" style={{ animationDuration: '0.6s' }}>🔥</span>

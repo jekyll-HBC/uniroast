@@ -38,6 +38,8 @@ export default function Profile() {
             src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
             className="w-20 h-20 rounded-full"
             alt=""
+            loading="lazy"
+            onError={e => { e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}` }}
           />
           <div>
             <h2 className="text-2xl font-bold">{user.username}</h2>
@@ -74,7 +76,7 @@ export default function Profile() {
         <div className="space-y-3">
           {posts.map(post => (
             <div key={post.id} className="bg-white rounded-2xl shadow-sm overflow-hidden flex">
-              <img src={post.image_url} className="w-24 h-24 object-cover shrink-0" alt="" />
+              <img src={post.image_url} className="w-24 h-24 object-cover shrink-0" alt="" loading="lazy" onError={e => { e.target.style.display='none' }} />
               <div className="p-3 flex flex-col justify-between flex-1 min-w-0">
                 <div>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${TIER_BADGE[post.tier || '未评级']}`}>

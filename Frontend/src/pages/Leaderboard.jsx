@@ -72,7 +72,7 @@ export default function Leaderboard() {
               <span className="text-2xl w-8 text-center shrink-0">
                 {medal[idx] ?? <span className="text-gray-400 font-bold">#{idx + 1}</span>}
               </span>
-              <img src={post.image_url} className="w-14 h-14 rounded-xl object-cover shrink-0" alt="" />
+              <img src={post.image_url} className="w-14 h-14 rounded-xl object-cover shrink-0" alt="" loading="lazy" onError={e => { e.target.style.display='none' }} />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 truncate">{post.author.username}</p>
                 {post.ai_comment && (
