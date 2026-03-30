@@ -1,19 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
+import useHomeTab from '../store/useHomeTab'
 import TierBadge from '../components/TierBadge'
 
-function CreateThemeModal({ onClose, onCreated }) {
-  const [form, setForm] = useState({ title: '', emoji: '🔥', description: '' })
+export function CreateThemeModal({ onClose, onCreated }) {
+  const [form, setForm] = useState({ title: '', emoji: '🔥', description: '', set_today: false })
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit() {
     if (!form.title.trim()) return
     setLoading(true)
     try {
-      const { data } = await api.post('/themes/', form)
+      const payload = { title: form.title, emoji: form.emoji, description: form.description || null }
+      if (form.set_today) {
+        const today = new Date().toISOString().split('T')[0]
+        payload.active_date = today
+      }
+      const { data } = await api.post('/themes/', payload)
       onCreated(data)
       onClose()
     } finally {
@@ -47,8 +53,17 @@ function CreateThemeModal({ onClose, onCreated }) {
           onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
           placeholder="描述一下这个主题（可选）"
           rows={2}
-          className="w-full bg-[#22222f] border border-white/10 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-[#a855f7] mb-4 text-[#f0f0f5] placeholder-[#4a4a5a]"
+          className="w-full bg-[#22222f] border border-white/10 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-[#a855f7] mb-3 text-[#f0f0f5] placeholder-[#4a4a5a]"
         />
+        <label className="flex items-center space-x-2 mb-4 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.set_today}
+            onChange={e => setForm(f => ({ ...f, set_today: e.target.checked }))}
+            className="w-4 h-4 accent-[#a855f7]"
+          />
+          <span className="text-sm text-[#8888a0]">设为今日主题</span>
+        </label>
         <button
           onClick={handleSubmit}
           disabled={!form.title.trim() || loading}
@@ -61,14 +76,22 @@ function CreateThemeModal({ onClose, onCreated }) {
   )
 }
 
-export default function Home() {
+export default function Home({ showCreate, onCloseCreate }) {
   const [themes, setThemes] = useState([])
   const [todayThemes, setTodayThemes] = useState([])
-  const [tab, setTab] = useState('today')
   const [loading, setLoading] = useState(true)
-  const [showCreate, setShowCreate] = useState(false)
-  const { user } = useAuth()
+  const { tab, setTab } = useHomeTab()
   const navigate = useNavigate()
+
+  // 滑动手势
+  const touchStartX = useRef(null)
+  function onTouchStart(e) { touchStartX.current = e.touches[0].clientX }
+  function onTouchEnd(e) {
+    if (touchStartX.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > 50) setTab(dx < 0 ? 'all' : 'today')
+    touchStartX.current = null
+  }
 
   useEffect(() => {
     Promise.all([
@@ -84,32 +107,11 @@ export default function Home() {
   const displayed = tab === 'today' ? todayThemes : themes
 
   return (
-    <div className="max-w-lg mx-auto py-6 px-4">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-[#f0f0f5]">🔥 主题</h1>
-        {user && (
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center space-x-1 bg-gradient-to-r from-[#a855f7] to-[#ec4899] text-white px-4 py-2 rounded-xl font-semibold text-sm"
-          >
-            <Plus size={16} />
-            <span>出题</span>
-          </button>
-        )}
-      </div>
-
-      <div className="flex space-x-2 mb-4">
-        {['today', 'all'].map((t, i) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${tab === t ? 'bg-[#a855f7] text-white' : 'bg-[#22222f] text-[#8888a0]'}`}
-          >
-            {i === 0 ? '今日主题' : '全部主题'}
-          </button>
-        ))}
-      </div>
-
+    <div
+      className="max-w-lg mx-auto py-4 px-4"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       {loading ? (
         <div className="space-y-3">
           {[1,2,3].map(i => <div key={i} className="h-20 bg-[#1a1a24] rounded-2xl animate-pulse" />)}
@@ -150,8 +152,11 @@ export default function Home() {
 
       {showCreate && (
         <CreateThemeModal
-          onClose={() => setShowCreate(false)}
-          onCreated={t => setThemes(ts => [t, ...ts])}
+          onClose={onCloseCreate}
+          onCreated={t => {
+            setThemes(ts => [t, ...ts])
+            if (t.active_date) setTodayThemes(ts => [t, ...ts])
+          }}
         />
       )}
     </div>
