@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
@@ -15,20 +15,34 @@ function PrivateRoute({ children }) {
   return token ? children : <Navigate to="/login" replace />
 }
 
+function MessagesPlaceholder() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-[#4a4a5a]">
+      <span className="text-5xl mb-4">💬</span>
+      <p className="text-lg font-semibold text-[#8888a0]">消息功能即将上线</p>
+      <p className="text-sm mt-1">好友系统正在开发中</p>
+    </div>
+  )
+}
+
 function App() {
   const { token, fetchMe } = useAuth()
+  const [showCreate, setShowCreate] = useState(false)
+
   useEffect(() => { if (token) fetchMe() }, [])
+
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <Navbar onOpenCreate={() => setShowCreate(true)} />
         <Toast />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home showCreate={showCreate} onCloseCreate={() => setShowCreate(false)} />} />
           <Route path="/login" element={<Login />} />
           <Route path="/theme/:id" element={<ThemePage />} />
           <Route path="/post/:id" element={<PostDetail />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/messages" element={<MessagesPlaceholder />} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
         </Routes>
       </div>
