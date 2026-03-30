@@ -29,7 +29,7 @@ async def create_post(
     theme = db.query(models.Theme).filter(models.Theme.id == data.theme_id).first()
     if not theme:
         raise HTTPException(status_code=404, detail="Theme not found")
-    ai_comment = await generate_roast(theme.title, data.caption)
+    ai_comment = await generate_roast(theme.title, data.caption, data.image_url)
     post = models.Post(
         theme_id=data.theme_id,
         image_url=data.image_url,
