@@ -1,6 +1,76 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* 背景层级 */
+  --color-bg-base: #0f0f13;
+  --color-bg-card: #1a1a24;
+  --color-bg-card2: #22222f;
+
+  /* 品牌色 */
+  --color-brand-purple: #a855f7;
+  --color-brand-pink: #ec4899;
+
+  /* 文字 */
+  --color-text-primary: #f0f0f5;
+  --color-text-secondary: #8888a0;
+  --color-text-muted: #4a4a5a;
+
+  /* Tier 颜色 */
+  --color-tier-heng-bg: #ff3b3b;
+  --color-tier-heng-glow: rgba(255,59,59,0.55);
+  --color-tier-top-bg: #ff8c00;
+  --color-tier-above-bg: #ffd700;
+  --color-tier-npc-bg: #2a2a38;
+  --color-tier-npc-text: #8888a0;
+  --color-tier-bottom-bg: #1a1a24;
+  --color-tier-bottom-text: #4a4a5a;
+
+  /* 边框 */
+  --color-border-subtle: rgba(255,255,255,0.08);
+
+  /* 自定义动画 */
+  --animate-vote-pop: vote-pop 0.32s ease-out;
+  --animate-float-up: float-up 0.6s ease-out forwards;
+  --animate-tier-in: tier-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  --animate-tier-out: tier-out 0.2s ease-in forwards;
+  --animate-shake: shake 0.35s ease-out;
+  --animate-sink: sink 0.3s ease-out;
+}
+
+@keyframes vote-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(0.9); }
+  70%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes float-up {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-28px); }
+}
+
+@keyframes tier-in {
+  0%   { opacity: 0; transform: translateY(-16px) scale(0.85); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes tier-out {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(14px); }
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-4px); }
+  40%     { transform: translateX(4px); }
+  60%     { transform: translateX(-3px); }
+  80%     { transform: translateX(3px); }
+}
+
+@keyframes sink {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(5px); }
+}
 
 @layer utilities {
   .safe-area-pb {
@@ -9,9 +79,35 @@
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
+  /* 毛玻璃暗底 */
+  .glass-dark {
+    background: rgba(15,15,19,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  /* 卡片微边框 */
+  .card-border {
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  /* Tier 外发光 */
+  .glow-heng {
+    box-shadow: 0 0 12px rgba(255,59,59,0.6), 0 0 4px rgba(255,59,59,0.4);
+  }
+  .glow-top {
+    box-shadow: 0 0 10px rgba(255,140,0,0.5);
+  }
+  .glow-above {
+    box-shadow: 0 0 10px rgba(255,215,0,0.4);
+  }
 }
 
 /* 防止 iOS 输入框自动缩放 */
 input, textarea, select {
   font-size: 16px;
+}
+
+/* 全局暗色背景 */
+body {
+  background-color: #0f0f13;
+  color: #f0f0f5;
 }
