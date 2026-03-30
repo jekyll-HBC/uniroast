@@ -3,6 +3,7 @@ import os
 
 def _get_client():
     api_key = os.getenv("ARK_API_KEY")
+    print(f"[ai_service] ARK_API_KEY={'set' if api_key else 'MISSING'}")
     if not api_key:
         return None
     return OpenAI(api_key=api_key, base_url="https://ark.cn-beijing.volces.com/api/v3")
