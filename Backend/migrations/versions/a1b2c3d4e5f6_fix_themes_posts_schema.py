@@ -16,9 +16,9 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # themes: drop old 'date' column, add new columns
-    op.drop_index('ix_themes_date', table_name='themes')
-    op.drop_column('themes', 'date')
+    # themes: drop old 'date' column if exists, add new columns
+    op.execute("DROP INDEX IF EXISTS ix_themes_date")
+    op.execute("ALTER TABLE themes DROP COLUMN IF EXISTS date")
     op.add_column('themes', sa.Column('emoji', sa.String(length=10), nullable=True))
     op.add_column('themes', sa.Column('description', sa.String(length=200), nullable=True))
     op.add_column('themes', sa.Column('is_official', sa.Boolean(), nullable=True, server_default='false'))
@@ -31,8 +31,8 @@ def upgrade() -> None:
 
     # posts: drop old 'theme' string column, add theme_id FK
     op.add_column('posts', sa.Column('theme_id', sa.Integer(), nullable=True))
+    op.execute("ALTER TABLE posts DROP COLUMN IF EXISTS theme")
     op.create_foreign_key('fk_posts_theme_id', 'posts', 'themes', ['theme_id'], ['id'])
-    op.drop_column('posts', 'theme')
 
 
 def downgrade() -> None:
