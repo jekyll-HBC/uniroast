@@ -205,7 +205,8 @@ export default function ThemePage() {
   )
   if (!theme) return null
 
-  const grouped = TIERS.reduce((acc, t) => ({ ...acc, [t]: [] }), { '未评级': [] })
+  const ALL_TIERS = [...TIERS, '未评级']
+  const grouped = ALL_TIERS.reduce((acc, t) => ({ ...acc, [t]: [] }), {})
   posts.forEach(p => { const t = p.tier || '未评级'; if (grouped[t]) grouped[t].push(p) })
 
   return (
@@ -236,7 +237,7 @@ export default function ThemePage() {
             <p className="text-xs mt-1 text-[#4a4a5a]/60">第一个上场的人，往往最勇敢</p>
           </div>
         ) : (
-          TIERS.map(tier => {
+          ALL_TIERS.map(tier => {
             const tierPosts = grouped[tier]
             if (tierPosts.length === 0) return null
             return (
