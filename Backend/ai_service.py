@@ -41,5 +41,6 @@ async def generate_roast(theme: str, caption: str | None, image_url: str | None 
             max_tokens=100,
         )
         return response.choices[0].message.content.strip()
-    except Exception:
+    except Exception as e:
+        print(f"[ai_service] error: {e}")
         return "AI评委正在摸鱼，暂时无法吐槽 🤖"
