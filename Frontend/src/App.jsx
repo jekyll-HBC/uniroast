@@ -1,6 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import Home from './pages/Home'
+import Home, { CreateThemeModal } from './pages/Home'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
 import Leaderboard from './pages/Leaderboard'
@@ -9,6 +9,7 @@ import PostDetail from './pages/PostDetail'
 import Navbar from './components/Navbar'
 import Toast from './components/Toast'
 import useAuth from './store/useAuth'
+import useHomeTab from './store/useHomeTab'
 
 function PrivateRoute({ children }) {
   const { token } = useAuth()
@@ -25,27 +26,49 @@ function MessagesPlaceholder() {
   )
 }
 
-function App() {
+function AppInner() {
   const { token, fetchMe } = useAuth()
   const [showCreate, setShowCreate] = useState(false)
+  const { setTab } = useHomeTab()
+  const navigate = useNavigate()
 
   useEffect(() => { if (token) fetchMe() }, [])
 
+  function handleOpenCreate() {
+    navigate('/')
+    setShowCreate(true)
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar onOpenCreate={handleOpenCreate} />
+      <Toast />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/theme/:id" element={<ThemePage />} />
+        <Route path="/post/:id" element={<PostDetail />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/messages" element={<MessagesPlaceholder />} />
+        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+      </Routes>
+      {showCreate && (
+        <CreateThemeModal
+          onClose={() => setShowCreate(false)}
+          onCreated={t => {
+            if (t.active_date) setTab('today')
+            setShowCreate(false)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar onOpenCreate={() => setShowCreate(true)} />
-        <Toast />
-        <Routes>
-          <Route path="/" element={<Home showCreate={showCreate} onCloseCreate={() => setShowCreate(false)} />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/theme/:id" element={<ThemePage />} />
-          <Route path="/post/:id" element={<PostDetail />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/messages" element={<MessagesPlaceholder />} />
-          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-        </Routes>
-      </div>
+      <AppInner />
     </BrowserRouter>
   )
 }
