@@ -76,7 +76,7 @@ export function CreateThemeModal({ onClose, onCreated }) {
   )
 }
 
-export default function Home({ showCreate, onCloseCreate }) {
+export default function Home() {
   const [themes, setThemes] = useState([])
   const [todayThemes, setTodayThemes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -148,16 +148,6 @@ export default function Home({ showCreate, onCloseCreate }) {
             </div>
           )}
         </div>
-      )}
-
-      {showCreate && (
-        <CreateThemeModal
-          onClose={onCloseCreate}
-          onCreated={t => {
-            setThemes(ts => [t, ...ts])
-            if (t.active_date) setTodayThemes(ts => [t, ...ts])
-          }}
-        />
       )}
     </div>
   )
