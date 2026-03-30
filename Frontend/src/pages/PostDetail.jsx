@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
+import useToast from '../store/useToast'
 
 const TIERS = ['夯', '顶级', '人上人', 'NPC', '拉完了']
 const TIER_SCORES = { '夯': 5, '顶级': 4, '人上人': 3, 'NPC': 2, '拉完了': 1 }
@@ -19,6 +20,7 @@ export default function PostDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const toast = useToast(s => s.show)
   const [post, setPost] = useState(null)
   const [loading, setLoading] = useState(true)
   const [lastVote, setLastVote] = useState(null)   // 本次会话最后一次投的等级
@@ -37,7 +39,7 @@ export default function PostDetail() {
       const { data } = await api.post(`/posts/${id}/vote`, { score })
       setPost(p => ({ ...p, avg_score: data.new_avg, vote_count: data.vote_count, tier: data.tier }))
       setLastVote(score)
-    } catch {}
+    } catch { toast('投票失败，请重试') }
   }
 
   function handleImageTap() {

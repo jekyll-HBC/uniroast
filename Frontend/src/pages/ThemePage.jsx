@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Upload, X } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
+import useToast from '../store/useToast'
 
 const TIERS = ['夯', '顶级', '人上人', 'NPC', '拉完了']
 const TIER_STYLE = {
@@ -34,10 +35,11 @@ function useTypewriter(text, active) {
 function SubmitModal({ theme, onClose, onPosted }) {
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState(null)
+  const [status, setStatus] = useState('idle') // idle | uploading | posting | reveal
   const [caption, setCaption] = useState('')
-  const [status, setStatus] = useState('idle')
   const [result, setResult] = useState(null)
   const inputRef = useRef()
+  const toast = useToast(s => s.show)
 
   const aiText = useTypewriter(result?.ai_comment, status === 'reveal')
 
@@ -66,6 +68,7 @@ function SubmitModal({ theme, onClose, onPosted }) {
       onPosted(post)
     } catch {
       setStatus('idle')
+      toast('发布失败，请重试')
     }
   }
 
