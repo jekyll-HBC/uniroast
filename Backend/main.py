@@ -10,10 +10,6 @@ from routers import themes as themes_router
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="UniRoast API", version="1.0.0")
-app.include_router(auth_router.router)
-app.include_router(posts_router.router)
-app.include_router(upload_router.router)
-app.include_router(themes_router.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,6 +18,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router.router)
+app.include_router(posts_router.router)
+app.include_router(upload_router.router)
+app.include_router(themes_router.router)
 
 @app.get("/")
 def read_root():
