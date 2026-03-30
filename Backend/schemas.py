@@ -29,6 +29,7 @@ class ThemeCreate(BaseModel):
     title: str
     emoji: str = "🔥"
     description: str | None = None
+    active_date: date | None = None
 
 class ThemeOut(BaseModel):
     id: int
