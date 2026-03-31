@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from datetime import date
 from database import get_db
 from auth import get_current_user
 from ai_service import generate_roast
@@ -38,6 +39,15 @@ async def create_post(
         user_id=current_user.id,
     )
     db.add(post)
+
+    # 更新 streak
+    today = date.today()
+    if current_user.last_post_date is None or (today - current_user.last_post_date).days > 1:
+        current_user.streak = 1
+    elif current_user.last_post_date < today:
+        current_user.streak = (current_user.streak or 0) + 1
+    current_user.last_post_date = today
+
     db.commit()
     db.refresh(post)
     return schemas.PostOut.from_orm_with_tier(post)
@@ -77,11 +87,21 @@ def vote(
     post.vote_count = new_count
     post.avg_score = new_avg
 
+    new_tier = schemas.score_to_tier(new_avg, new_count)
+
+    # 写入动态记录
+    db.add(models.PostActivity(
+        post_id=post_id,
+        post_owner_id=post.user_id,
+        new_vote_count=new_count,
+        new_tier=new_tier,
+    ))
+
     db.commit()
     return schemas.VoteOut(
         post_id=post_id,
         score=data.score,
         new_avg=new_avg,
         vote_count=new_count,
-        tier=schemas.score_to_tier(new_avg, new_count),
+        tier=new_tier,
     )

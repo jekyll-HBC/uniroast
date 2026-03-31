@@ -32,3 +32,28 @@ def login(data: schemas.UserLogin, db: Session = Depends(get_db)):
 @router.get("/me", response_model=schemas.UserOut)
 def me(current_user: models.User = Depends(auth.get_current_user)):
     return current_user
+
+@router.get("/me/activity", response_model=list[schemas.ActivityOut])
+def my_activity(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    activities = (
+        db.query(models.PostActivity)
+        .filter(models.PostActivity.post_owner_id == current_user.id)
+        .order_by(models.PostActivity.created_at.desc())
+        .limit(20)
+        .all()
+    )
+    return [
+        schemas.ActivityOut(
+            id=a.id,
+            post_id=a.post_id,
+            new_vote_count=a.new_vote_count,
+            new_tier=a.new_tier,
+            created_at=a.created_at,
+            post_image_url=a.post.image_url,
+            post_caption=a.post.caption,
+        )
+        for a in activities
+    ]

@@ -34,7 +34,7 @@ async def generate_roast(theme: str, caption: str | None, image_url: str | None 
 
     try:
         response = client.chat.completions.create(
-            model="doubao-1.5-vision-pro-250328",
+            model="ep-20260331095026-8hj4r",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_content},

@@ -46,16 +46,26 @@ export default function PostDetail() {
   const [loading, setLoading] = useState(true)
   const [lastVote, setLastVote] = useState(null)
   const [showHeart, setShowHeart] = useState(false)
-  const [votingTier, setVotingTier] = useState(null)   // 正在动效的 tier
-  const [prevTier, setPrevTier] = useState(null)        // 用于 tier 变化动画
+  const [votingTier, setVotingTier] = useState(null)
+  const [prevTier, setPrevTier] = useState(null)
   const [tierChanging, setTierChanging] = useState(false)
   const [particles, setParticles] = useState([])
+  const [nextPost, setNextPost] = useState(null)
   const tapTimer = useRef(null)
   const voteAreaRef = useRef(null)
 
   useEffect(() => {
     api.get(`/posts/${id}`)
-      .then(r => { setPost(r.data); setPrevTier(r.data.tier) })
+      .then(r => {
+        setPost(r.data)
+        setPrevTier(r.data.tier)
+        // 预加载同主题下一个作品
+        api.get(`/posts/?theme_id=${r.data.theme_id}&limit=20`)
+          .then(({ data }) => {
+            const others = data.filter(p => p.id !== parseInt(id))
+            if (others.length > 0) setNextPost(others[Math.floor(Math.random() * others.length)])
+          })
+      })
       .finally(() => setLoading(false))
   }, [id])
 
@@ -230,6 +240,24 @@ export default function PostDetail() {
           </p>
         )}
       </div>
+
+      {/* 下一个作品引导 */}
+      {nextPost && lastVote && (
+        <div className="mx-4 mt-6">
+          <p className="text-xs text-[#4a4a5a] mb-2">继续评判下一个</p>
+          <button
+            onClick={() => navigate(`/post/${nextPost.id}`)}
+            className="w-full bg-[#1a1a24] card-border rounded-2xl overflow-hidden flex items-center space-x-3 p-3 hover:bg-[#22222f] transition text-left"
+          >
+            <img src={nextPost.image_url} className="w-16 h-16 rounded-xl object-cover shrink-0" alt="" loading="lazy" onError={e => { e.target.style.display='none' }} />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-[#f0f0f5] truncate">{nextPost.author.username}</p>
+              {nextPost.ai_comment && <p className="text-xs text-[#a855f7] truncate mt-0.5">🤖 {nextPost.ai_comment}</p>}
+            </div>
+            <span className="text-[#4a4a5a] text-lg">›</span>
+          </button>
+        </div>
+      )}
     </div>
   )
 }
