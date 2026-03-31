@@ -15,7 +15,7 @@ class UserOut(BaseModel):
     username: str
     email: str
     avatar_url: str | None
-    streak: int = 0
+    streak: int | None = 0
 
     class Config:
         from_attributes = True
