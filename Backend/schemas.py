@@ -15,6 +15,7 @@ class UserOut(BaseModel):
     username: str
     email: str
     avatar_url: str | None
+    streak: int = 0
 
     class Config:
         from_attributes = True
@@ -99,3 +100,39 @@ class VoteOut(BaseModel):
     new_avg: float
     vote_count: int
     tier: str
+
+
+# Activity
+class ActivityOut(BaseModel):
+    id: int
+    post_id: int
+    new_vote_count: int
+    new_tier: str
+    created_at: datetime
+    post_image_url: str
+    post_caption: str | None
+
+    class Config:
+        from_attributes = True
+
+
+# Season
+class SeasonOut(BaseModel):
+    id: int
+    number: int
+    start_date: date
+    end_date: date
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class SeasonSnapshotOut(BaseModel):
+    rank: int
+    avg_score: float
+    vote_count: int
+    tier: str
+    post: PostOut
+
+    class Config:
+        from_attributes = True

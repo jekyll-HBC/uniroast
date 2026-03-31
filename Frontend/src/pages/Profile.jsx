@@ -7,14 +7,19 @@ import TierBadge from '../components/TierBadge'
 export default function Profile() {
   const { user } = useAuth()
   const [posts, setPosts] = useState([])
+  const [activities, setActivities] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!user) return
-    api.get(`/posts/?user_id=${user.id}`)
-      .then(({ data }) => setPosts(data))
-      .finally(() => setLoading(false))
+    Promise.all([
+      api.get(`/posts/?user_id=${user.id}`),
+      api.get('/auth/me/activity'),
+    ]).then(([postsRes, actRes]) => {
+      setPosts(postsRes.data)
+      setActivities(actRes.data)
+    }).finally(() => setLoading(false))
   }, [user])
 
   if (!user) return null
@@ -37,6 +42,9 @@ export default function Profile() {
           <div>
             <h2 className="text-2xl font-bold text-[#f0f0f5]">{user.username}</h2>
             <p className="text-[#8888a0] text-sm">{user.email}</p>
+            {user.streak > 0 && (
+              <p className="text-sm text-orange-400 mt-1">🔥 连战 {user.streak} 天</p>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-3 gap-4">
@@ -57,6 +65,28 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* 最近动态 */}
+      {activities.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-bold text-[#8888a0] mb-3">最近动态</h3>
+          <div className="space-y-2">
+            {activities.slice(0, 5).map(a => (
+              <button
+                key={a.id}
+                onClick={() => navigate(`/post/${a.post_id}`)}
+                className="w-full bg-[#1a1a24] card-border rounded-xl p-3 flex items-center space-x-3 text-left hover:bg-[#22222f] transition"
+              >
+                <img src={a.post_image_url} className="w-10 h-10 rounded-lg object-cover shrink-0" alt="" loading="lazy" onError={e => { e.target.style.display='none' }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-[#f0f0f5] truncate">{a.post_caption || '你的作品'}</p>
+                  <p className="text-xs text-[#a855f7] mt-0.5">新增投票 · 当前 {a.new_tier} · 共 {a.new_vote_count} 票</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <h3 className="text-xl font-bold mb-4 text-[#f0f0f5]">我的战绩</h3>
       {loading ? (
