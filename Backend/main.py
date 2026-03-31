@@ -67,9 +67,11 @@ async def lifespan(app: FastAPI):
         get_or_create_current_season(db)
     finally:
         db.close()
-    scheduler.start()
+    if not scheduler.running:
+        scheduler.start()
     yield
-    scheduler.shutdown()
+    if scheduler.running:
+        scheduler.shutdown()
 
 
 app = FastAPI(title="UniRoast API", version="1.0.0", lifespan=lifespan)
