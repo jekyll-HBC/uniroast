@@ -1,26 +1,45 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
+import useHomeTab from '../store/useHomeTab'
+import TierBadge from '../components/TierBadge'
 
-const TIER_COLORS = {
-  '夯': 'bg-red-500 text-white',
-  '顶级': 'bg-orange-400 text-white',
-  '人上人': 'bg-yellow-300 text-gray-800',
-  'NPC': 'bg-gray-100 text-gray-600',
-  '拉完了': 'bg-white text-gray-400 border border-gray-200',
+function useCountdown() {
+  const [timeLeft, setTimeLeft] = useState('')
+  useEffect(() => {
+    function calc() {
+      const now = new Date()
+      const end = new Date()
+      end.setHours(23, 59, 59, 999)
+      const diff = end - now
+      const h = Math.floor(diff / 3600000)
+      const m = Math.floor((diff % 3600000) / 60000)
+      const s = Math.floor((diff % 60000) / 1000)
+      setTimeLeft(`${h}h ${m}m ${s}s`)
+    }
+    calc()
+    const id = setInterval(calc, 1000)
+    return () => clearInterval(id)
+  }, [])
+  return timeLeft
 }
 
-function CreateThemeModal({ onClose, onCreated }) {
-  const [form, setForm] = useState({ title: '', emoji: '🔥', description: '' })
+export function CreateThemeModal({ onClose, onCreated }) {
+  const [form, setForm] = useState({ title: '', emoji: '🔥', description: '', set_today: false })
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit() {
     if (!form.title.trim()) return
     setLoading(true)
     try {
-      const { data } = await api.post('/themes/', form)
+      const payload = { title: form.title, emoji: form.emoji, description: form.description || null }
+      if (form.set_today) {
+        const today = new Date().toISOString().split('T')[0]
+        payload.active_date = today
+      }
+      const { data } = await api.post('/themes/', payload)
       onCreated(data)
       onClose()
     } finally {
@@ -29,24 +48,24 @@ function CreateThemeModal({ onClose, onCreated }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+    <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50 p-4">
+      <div className="bg-[#1a1a24] card-border rounded-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold">创建新主题</h3>
-          <button onClick={onClose}><X size={20} className="text-gray-400" /></button>
+          <h3 className="text-lg font-bold text-[#f0f0f5]">创建新主题</h3>
+          <button onClick={onClose}><X size={20} className="text-[#4a4a5a]" /></button>
         </div>
         <div className="flex space-x-2 mb-3">
           <input
             value={form.emoji}
             onChange={e => setForm(f => ({ ...f, emoji: e.target.value }))}
-            className="w-16 border border-gray-200 rounded-xl px-3 py-2 text-center text-xl focus:outline-none focus:border-purple-400"
+            className="w-16 bg-[#22222f] border border-white/10 rounded-xl px-3 py-2 text-center text-xl focus:outline-none focus:border-[#a855f7] text-[#f0f0f5]"
             maxLength={2}
           />
           <input
             value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             placeholder="主题名称"
-            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-400"
+            className="flex-1 bg-[#22222f] border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-[#a855f7] text-[#f0f0f5] placeholder-[#4a4a5a]"
           />
         </div>
         <textarea
@@ -54,12 +73,21 @@ function CreateThemeModal({ onClose, onCreated }) {
           onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
           placeholder="描述一下这个主题（可选）"
           rows={2}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-purple-400 mb-4"
+          className="w-full bg-[#22222f] border border-white/10 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-[#a855f7] mb-3 text-[#f0f0f5] placeholder-[#4a4a5a]"
         />
+        <label className="flex items-center space-x-2 mb-4 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.set_today}
+            onChange={e => setForm(f => ({ ...f, set_today: e.target.checked }))}
+            className="w-4 h-4 accent-[#a855f7]"
+          />
+          <span className="text-sm text-[#8888a0]">设为今日主题</span>
+        </label>
         <button
           onClick={handleSubmit}
           disabled={!form.title.trim() || loading}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-[#a855f7] to-[#ec4899] text-white py-3 rounded-xl font-bold disabled:opacity-50"
         >
           {loading ? '创建中...' : '创建'}
         </button>
@@ -71,11 +99,20 @@ function CreateThemeModal({ onClose, onCreated }) {
 export default function Home() {
   const [themes, setThemes] = useState([])
   const [todayThemes, setTodayThemes] = useState([])
-  const [tab, setTab] = useState('today') // 'today' | 'all'
   const [loading, setLoading] = useState(true)
-  const [showCreate, setShowCreate] = useState(false)
-  const { user } = useAuth()
+  const { tab, setTab } = useHomeTab()
   const navigate = useNavigate()
+  const countdown = useCountdown()
+
+  // 滑动手势
+  const touchStartX = useRef(null)
+  function onTouchStart(e) { touchStartX.current = e.touches[0].clientX }
+  function onTouchEnd(e) {
+    if (touchStartX.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > 50) setTab(dx < 0 ? 'all' : 'today')
+    touchStartX.current = null
+  }
 
   useEffect(() => {
     Promise.all([
@@ -84,83 +121,57 @@ export default function Home() {
     ]).then(([todayRes, allRes]) => {
       setTodayThemes(todayRes.data)
       setThemes(allRes.data)
-      // 如果没有今日主题，默认显示全部
       if (todayRes.data.length === 0) setTab('all')
     }).finally(() => setLoading(false))
   }, [])
 
+  const displayed = tab === 'today' ? todayThemes : themes
+
   return (
-    <div className="max-w-lg mx-auto py-6 px-4">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">🔥 主题</h1>
-        {user && (
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center space-x-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-xl font-semibold text-sm"
-          >
-            <Plus size={16} />
-            <span>出题</span>
-          </button>
-        )}
-      </div>
-
-      {/* Tab 切换 */}
-      <div className="flex space-x-2 mb-4">
-        <button
-          onClick={() => setTab('today')}
-          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${tab === 'today' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500'}`}
-        >
-          今日主题
-        </button>
-        <button
-          onClick={() => setTab('all')}
-          className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${tab === 'all' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500'}`}
-        >
-          全部主题
-        </button>
-      </div>
-
+    <div
+      className="max-w-lg mx-auto py-4 px-4"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       {loading ? (
-        <div className="text-center py-20 text-gray-400">加载中...</div>
+        <div className="space-y-3">
+          {[1,2,3].map(i => <div key={i} className="h-20 bg-[#1a1a24] rounded-2xl animate-pulse" />)}
+        </div>
       ) : (
         <div className="space-y-3">
-          {(tab === 'today' ? todayThemes : themes).map(theme => (
+          {displayed.map(theme => (
             <button
               key={theme.id}
               onClick={() => navigate(`/theme/${theme.id}`)}
-              className="w-full bg-white rounded-2xl shadow-sm p-4 flex items-center space-x-4 hover:shadow-md transition text-left"
+              className="w-full bg-[#1a1a24] card-border rounded-2xl p-4 flex items-center space-x-4 hover:bg-[#22222f] transition text-left"
             >
               <span className="text-4xl">{theme.emoji}</span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
-                  <p className="font-bold text-gray-800 truncate">{theme.title}</p>
+                  <p className="font-bold text-[#f0f0f5] truncate">{theme.title}</p>
                   {theme.is_official && (
-                    <span className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full shrink-0">官方</span>
+                    <span className="text-xs bg-[#a855f7]/20 text-[#a855f7] px-2 py-0.5 rounded-full shrink-0">官方</span>
                   )}
                 </div>
                 {theme.description && (
-                  <p className="text-sm text-gray-400 truncate mt-0.5">{theme.description}</p>
+                  <p className="text-sm text-[#8888a0] truncate mt-0.5">{theme.description}</p>
+                )}
+                {tab === 'today' && (
+                  <p className="text-xs text-red-400 mt-1 font-mono">⏱ {countdown} 后截止</p>
                 )}
               </div>
               <div className="text-right shrink-0">
-                <p className="text-lg font-bold text-purple-600">{theme.post_count}</p>
-                <p className="text-xs text-gray-400">参战</p>
+                <p className="text-lg font-bold text-[#a855f7]">{theme.post_count}</p>
+                <p className="text-xs text-[#4a4a5a]">参战</p>
               </div>
             </button>
           ))}
-          {(tab === 'today' ? todayThemes : themes).length === 0 && (
-            <div className="text-center py-20 text-gray-400">
+          {displayed.length === 0 && (
+            <div className="text-center py-20 text-[#4a4a5a]">
               {tab === 'today' ? '今日暂无主题，管理员还没出题' : '还没有主题，快来出题！'}
             </div>
           )}
         </div>
-      )}
-
-      {showCreate && (
-        <CreateThemeModal
-          onClose={() => setShowCreate(false)}
-          onCreated={t => setThemes(ts => [t, ...ts])}
-        />
       )}
     </div>
   )
