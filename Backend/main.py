@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from database import engine, SessionLocal
 import models
 from routers import auth as auth_router
@@ -56,7 +56,7 @@ def rollover_season():
         db.close()
 
 
-scheduler = AsyncIOScheduler()
+scheduler = BackgroundScheduler()
 scheduler.add_job(rollover_season, 'cron', day_of_week='sun', hour=23, minute=59)
 
 
