@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from datetime import datetime, date
 
 class UserRegister(BaseModel):
@@ -15,7 +15,12 @@ class UserOut(BaseModel):
     username: str
     email: str
     avatar_url: str | None
-    streak: int = 0
+    streak: int | None = None
+
+    @field_validator("streak", mode="before")
+    @classmethod
+    def coerce_streak(cls, v):
+        return v if v is not None else 0
 
     class Config:
         from_attributes = True
