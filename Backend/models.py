@@ -67,7 +67,7 @@ class Vote(Base):
 
 
 class PostActivity(Base):
-    """记录帖子被投票的动态，用于 Profile 页的"最近动态""""
+    """记录帖子被投票的动态，用于 Profile 页的最近动态"""
     __tablename__ = "post_activities"
 
     id = Column(Integer, primary_key=True, index=True)
