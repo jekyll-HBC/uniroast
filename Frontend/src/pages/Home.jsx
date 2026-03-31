@@ -6,6 +6,26 @@ import useAuth from '../store/useAuth'
 import useHomeTab from '../store/useHomeTab'
 import TierBadge from '../components/TierBadge'
 
+function useCountdown() {
+  const [timeLeft, setTimeLeft] = useState('')
+  useEffect(() => {
+    function calc() {
+      const now = new Date()
+      const end = new Date()
+      end.setHours(23, 59, 59, 999)
+      const diff = end - now
+      const h = Math.floor(diff / 3600000)
+      const m = Math.floor((diff % 3600000) / 60000)
+      const s = Math.floor((diff % 60000) / 1000)
+      setTimeLeft(`${h}h ${m}m ${s}s`)
+    }
+    calc()
+    const id = setInterval(calc, 1000)
+    return () => clearInterval(id)
+  }, [])
+  return timeLeft
+}
+
 export function CreateThemeModal({ onClose, onCreated }) {
   const [form, setForm] = useState({ title: '', emoji: '🔥', description: '', set_today: false })
   const [loading, setLoading] = useState(false)
@@ -82,6 +102,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const { tab, setTab } = useHomeTab()
   const navigate = useNavigate()
+  const countdown = useCountdown()
 
   // 滑动手势
   const touchStartX = useRef(null)
@@ -134,6 +155,9 @@ export default function Home() {
                 </div>
                 {theme.description && (
                   <p className="text-sm text-[#8888a0] truncate mt-0.5">{theme.description}</p>
+                )}
+                {tab === 'today' && (
+                  <p className="text-xs text-red-400 mt-1 font-mono">⏱ {countdown} 后截止</p>
                 )}
               </div>
               <div className="text-right shrink-0">

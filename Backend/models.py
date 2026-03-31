@@ -13,6 +13,8 @@ class User(Base):
     avatar_url = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    streak = Column(Integer, default=0)
+    last_post_date = Column(Date, nullable=True)
 
     posts = relationship("Post", back_populates="author")
     votes = relationship("Vote", back_populates="voter")
@@ -62,3 +64,46 @@ class Vote(Base):
 
     voter = relationship("User", back_populates="votes")
     post = relationship("Post", back_populates="votes")
+
+
+class PostActivity(Base):
+    """记录帖子被投票的动态，用于 Profile 页的"最近动态""""
+    __tablename__ = "post_activities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    post_owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    new_vote_count = Column(Integer, nullable=False)
+    new_tier = Column(String(20), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    post = relationship("Post")
+
+
+class Season(Base):
+    """赛季，每周一个"""
+    __tablename__ = "seasons"
+
+    id = Column(Integer, primary_key=True, index=True)
+    number = Column(Integer, unique=True, nullable=False)  # 第几赛季
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    is_active = Column(Boolean, default=True)
+
+    snapshots = relationship("SeasonSnapshot", back_populates="season")
+
+
+class SeasonSnapshot(Base):
+    """赛季结束时的排名快照"""
+    __tablename__ = "season_snapshots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    season_id = Column(Integer, ForeignKey("seasons.id"), nullable=False)
+    post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
+    rank = Column(Integer, nullable=False)
+    avg_score = Column(Float, nullable=False)
+    vote_count = Column(Integer, nullable=False)
+    tier = Column(String(20), nullable=False)
+
+    season = relationship("Season", back_populates="snapshots")
+    post = relationship("Post")
