@@ -1,7 +1,7 @@
 """binary vote and feed redesign
 
 Revision ID: b2c3d4e5f6a7
-Revises: a1b2c3d4e5f6
+Revises: fbab889f61cd
 Create Date: 2026-04-04
 
 Changes:
@@ -15,7 +15,7 @@ from typing import Sequence, Union
 from alembic import op
 
 revision: str = 'b2c3d4e5f6a7'
-down_revision: Union[str, Sequence[str], None] = 'a1b2c3d4e5f6'
+down_revision: Union[str, Sequence[str], None] = 'fbab889f61cd'
 branch_labels = None
 depends_on = None
 
