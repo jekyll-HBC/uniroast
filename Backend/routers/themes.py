@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from database import get_db
 from auth import get_current_user
@@ -49,3 +49,21 @@ def get_theme(theme_id: int, db: Session = Depends(get_db)):
     out = schemas.ThemeOut.model_validate(theme)
     out.post_count = db.query(func.count(models.Post.id)).filter(models.Post.theme_id == theme_id).scalar()
     return out
+
+
+@router.get("/{theme_id}/posts", response_model=list[schemas.FeedPostOut])
+def theme_posts(theme_id: int, skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
+    """主题帖子信息流（贴吧式，按热度排序）"""
+    theme = db.query(models.Theme).filter(models.Theme.id == theme_id).first()
+    if not theme:
+        raise HTTPException(status_code=404, detail="Theme not found")
+    posts = (
+        db.query(models.Post)
+        .options(joinedload(models.Post.author), joinedload(models.Post.theme_obj))
+        .filter(models.Post.theme_id == theme_id)
+        .order_by(models.Post.avg_score.desc(), models.Post.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return [schemas.FeedPostOut.from_orm_with_tier(p) for p in posts]

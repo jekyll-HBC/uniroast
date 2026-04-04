@@ -1,13 +1,36 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
-from datetime import date
+from datetime import date, datetime, timezone
 from database import get_db
 from auth import get_current_user
 from ai_service import generate_roast
 import models, schemas
+import math
 
 router = APIRouter(prefix="/posts", tags=["posts"])
+
+
+@router.get("/feed", response_model=list[schemas.FeedPostOut])
+def get_feed(page: int = 1, limit: int = 20, db: Session = Depends(get_db)):
+    """推荐信息流：时间衰减热度排序"""
+    posts = (
+        db.query(models.Post)
+        .options(joinedload(models.Post.author), joinedload(models.Post.theme_obj))
+        .all()
+    )
+    now = datetime.now(timezone.utc)
+
+    def feed_score(post):
+        created = post.created_at
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+        age_hours = (now - created).total_seconds() / 3600
+        return (post.heng_count + 0.5 * post.vote_count) / math.pow(age_hours + 2, 1.5)
+
+    posts.sort(key=feed_score, reverse=True)
+    offset = (page - 1) * limit
+    return [schemas.FeedPostOut.from_orm_with_tier(p) for p in posts[offset: offset + limit]]
 
 
 @router.get("/", response_model=list[schemas.PostOut])
@@ -68,40 +91,32 @@ def vote(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    if not 1 <= data.score <= 5:
-        raise HTTPException(status_code=400, detail="Score must be between 1 and 5")
-
     post = db.query(models.Post).filter(models.Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    db.add(models.Vote(user_id=current_user.id, post_id=post_id, score=data.score))
+    db.add(models.Vote(user_id=current_user.id, post_id=post_id, vote_type=data.vote_type))
 
-    result = db.query(
-        func.count(models.Vote.id),
-        func.avg(models.Vote.score),
-    ).filter(models.Vote.post_id == post_id).one()
-    new_count = (result[0] or 0) + 1
-    new_avg = ((result[1] or 0) * (result[0] or 0) + data.score) / new_count
+    if data.vote_type == "heng":
+        post.heng_count = (post.heng_count or 0) + 1
+    post.vote_count = (post.vote_count or 0) + 1
+    post.avg_score = post.heng_count / post.vote_count  # heng_rate
 
-    post.vote_count = new_count
-    post.avg_score = new_avg
+    new_tier = schemas.ratio_to_tier(post.heng_count, post.vote_count)
 
-    new_tier = schemas.score_to_tier(new_avg, new_count)
-
-    # 写入动态记录
     db.add(models.PostActivity(
         post_id=post_id,
         post_owner_id=post.user_id,
-        new_vote_count=new_count,
+        new_vote_count=post.vote_count,
         new_tier=new_tier,
     ))
 
     db.commit()
     return schemas.VoteOut(
         post_id=post_id,
-        score=data.score,
-        new_avg=new_avg,
-        vote_count=new_count,
+        vote_type=data.vote_type,
+        heng_count=post.heng_count,
+        la_count=post.vote_count - post.heng_count,
+        vote_count=post.vote_count,
         tier=new_tier,
     )
