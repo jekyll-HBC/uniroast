@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Profile from './pages/Profile'
 import Leaderboard from './pages/Leaderboard'
 import ThemePage from './pages/ThemePage'
+import ThemeFeed from './pages/ThemeFeed'
 import PostDetail from './pages/PostDetail'
 import Navbar from './components/Navbar'
 import Toast from './components/Toast'
@@ -47,6 +48,7 @@ function AppInner() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/theme/:id" element={<ThemePage />} />
+        <Route path="/theme-feed/:id" element={<ThemeFeed />} />
         <Route path="/post/:id" element={<PostDetail />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/messages" element={<MessagesPlaceholder />} />

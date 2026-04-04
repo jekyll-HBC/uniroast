@@ -46,7 +46,7 @@ def current_leaderboard(theme_id: int | None = None, db: Session = Depends(get_d
             rank=i + 1,
             avg_score=p.avg_score,
             vote_count=p.vote_count,
-            tier=schemas.score_to_tier(p.avg_score, p.vote_count),
+            tier=schemas.ratio_to_tier(p.heng_count, p.vote_count),
             post=schemas.PostOut.from_orm_with_tier(p),
         )
         for i, p in enumerate(posts)
