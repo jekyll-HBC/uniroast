@@ -41,7 +41,7 @@ def rollover_season():
                 rank=i + 1,
                 avg_score=p.avg_score,
                 vote_count=p.vote_count,
-                tier=schemas.score_to_tier(p.avg_score, p.vote_count),
+                tier=schemas.ratio_to_tier(p.heng_count, p.vote_count),
             ))
 
         season.is_active = False

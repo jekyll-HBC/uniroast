@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, ForeignKey, UniqueConstraint, Date
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, ForeignKey, UniqueConstraint, Date, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -29,8 +29,9 @@ class Post(Base):
     image_url = Column(String, nullable=False)
     caption = Column(String(300), nullable=True)
     ai_comment = Column(String, nullable=True)
-    avg_score = Column(Float, default=0.0)
+    avg_score = Column(Float, default=0.0)    # repurposed: stores heng_rate (0.0–1.0)
     vote_count = Column(Integer, default=0)
+    heng_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     author = relationship("User", back_populates="posts")
@@ -60,7 +61,7 @@ class Vote(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     post_id = Column(Integer, ForeignKey("posts.id"), nullable=False)
-    score = Column(Integer, nullable=False)           # 1-5，可多次投票取平均
+    vote_type = Column(String(10), nullable=False)     # "heng" | "la"
 
     voter = relationship("User", back_populates="votes")
     post = relationship("Post", back_populates="votes")
@@ -107,3 +108,28 @@ class SeasonSnapshot(Base):
 
     season = relationship("Season", back_populates="snapshots")
     post = relationship("Post")
+
+
+# ── Phase 2: Comment System (placeholder — no API yet) ──────────────────────
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    content = Column(Text, nullable=False)
+    parent_id = Column(Integer, ForeignKey("comments.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    author = relationship("User")
+    replies = relationship("Comment", backref="parent", remote_side=[id])
+
+
+class CommentVote(Base):
+    __tablename__ = "comment_votes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    comment_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

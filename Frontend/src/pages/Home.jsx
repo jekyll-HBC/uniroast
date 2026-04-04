@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { X } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
-import useHomeTab from '../store/useHomeTab'
+import useHomeTab, { HOME_TABS } from '../store/useHomeTab'
 import TierBadge from '../components/TierBadge'
+import RecommendFeed from './RecommendFeed'
 
 function useCountdown() {
   const [timeLeft, setTimeLeft] = useState('')
@@ -104,13 +105,17 @@ export default function Home() {
   const navigate = useNavigate()
   const countdown = useCountdown()
 
-  // 滑动手势
+  // 滑动手势（3 tabs）
   const touchStartX = useRef(null)
   function onTouchStart(e) { touchStartX.current = e.touches[0].clientX }
   function onTouchEnd(e) {
     if (touchStartX.current === null) return
     const dx = e.changedTouches[0].clientX - touchStartX.current
-    if (Math.abs(dx) > 50) setTab(dx < 0 ? 'all' : 'today')
+    if (Math.abs(dx) > 50) {
+      const idx = HOME_TABS.indexOf(tab)
+      if (dx < 0) setTab(HOME_TABS[Math.min(idx + 1, HOME_TABS.length - 1)])
+      else setTab(HOME_TABS[Math.max(idx - 1, 0)])
+    }
     touchStartX.current = null
   }
 
@@ -121,55 +126,89 @@ export default function Home() {
     ]).then(([todayRes, allRes]) => {
       setTodayThemes(todayRes.data)
       setThemes(allRes.data)
-      if (todayRes.data.length === 0) setTab('all')
     }).finally(() => setLoading(false))
   }, [])
 
-  const displayed = tab === 'today' ? todayThemes : themes
+  // 推荐 tab
+  if (tab === 'recommend') {
+    return (
+      <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <RecommendFeed />
+      </div>
+    )
+  }
 
+  // 今日主题 tab
+  if (tab === 'today') {
+    return (
+      <div className="max-w-lg mx-auto py-4 px-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {loading ? (
+          <div className="space-y-3">
+            {[1,2,3].map(i => <div key={i} className="h-20 bg-[#1a1a24] rounded-2xl animate-pulse" />)}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {todayThemes.map(theme => (
+              <button
+                key={theme.id}
+                onClick={() => navigate(`/theme/${theme.id}`)}
+                className="w-full bg-[#1a1a24] card-border rounded-2xl p-4 flex items-center space-x-4 hover:bg-[#22222f] transition text-left"
+              >
+                <span className="text-4xl">{theme.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-2">
+                    <p className="font-bold text-[#f0f0f5] truncate">{theme.title}</p>
+                    {theme.is_official && (
+                      <span className="text-xs bg-[#a855f7]/20 text-[#a855f7] px-2 py-0.5 rounded-full shrink-0">官方</span>
+                    )}
+                  </div>
+                  {theme.description && (
+                    <p className="text-sm text-[#8888a0] truncate mt-0.5">{theme.description}</p>
+                  )}
+                  <p className="text-xs text-red-400 mt-1 font-mono">⏱ {countdown} 后截止</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-lg font-bold text-[#a855f7]">{theme.post_count}</p>
+                  <p className="text-xs text-[#4a4a5a]">参战</p>
+                </div>
+              </button>
+            ))}
+            {todayThemes.length === 0 && (
+              <div className="text-center py-20 text-[#4a4a5a]">今日暂无主题，管理员还没出题</div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // 全部主题 tab — 贴吧式 2 列网格
   return (
-    <div
-      className="max-w-lg mx-auto py-4 px-4"
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-    >
+    <div className="max-w-lg mx-auto py-4 px-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {loading ? (
-        <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="h-20 bg-[#1a1a24] rounded-2xl animate-pulse" />)}
+        <div className="grid grid-cols-2 gap-3">
+          {[1,2,3,4].map(i => <div key={i} className="h-28 bg-[#1a1a24] rounded-2xl animate-pulse" />)}
         </div>
       ) : (
-        <div className="space-y-3">
-          {displayed.map(theme => (
+        <div className="grid grid-cols-2 gap-3">
+          {themes.map(theme => (
             <button
               key={theme.id}
-              onClick={() => navigate(`/theme/${theme.id}`)}
-              className="w-full bg-[#1a1a24] card-border rounded-2xl p-4 flex items-center space-x-4 hover:bg-[#22222f] transition text-left"
+              onClick={() => navigate(`/theme-feed/${theme.id}`)}
+              className="bg-[#1a1a24] card-border rounded-2xl p-4 flex flex-col items-start hover:bg-[#22222f] transition text-left"
             >
-              <span className="text-4xl">{theme.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2">
-                  <p className="font-bold text-[#f0f0f5] truncate">{theme.title}</p>
-                  {theme.is_official && (
-                    <span className="text-xs bg-[#a855f7]/20 text-[#a855f7] px-2 py-0.5 rounded-full shrink-0">官方</span>
-                  )}
-                </div>
-                {theme.description && (
-                  <p className="text-sm text-[#8888a0] truncate mt-0.5">{theme.description}</p>
-                )}
-                {tab === 'today' && (
-                  <p className="text-xs text-red-400 mt-1 font-mono">⏱ {countdown} 后截止</p>
+              <span className="text-3xl mb-2">{theme.emoji}</span>
+              <div className="flex items-center space-x-1.5 mb-1 w-full">
+                <p className="font-bold text-[#f0f0f5] text-sm truncate flex-1">{theme.title}</p>
+                {theme.is_official && (
+                  <span className="text-[10px] bg-[#a855f7]/20 text-[#a855f7] px-1.5 py-0.5 rounded-full shrink-0">官方</span>
                 )}
               </div>
-              <div className="text-right shrink-0">
-                <p className="text-lg font-bold text-[#a855f7]">{theme.post_count}</p>
-                <p className="text-xs text-[#4a4a5a]">参战</p>
-              </div>
+              <p className="text-xs text-[#4a4a5a]">{theme.post_count} 参战</p>
             </button>
           ))}
-          {displayed.length === 0 && (
-            <div className="text-center py-20 text-[#4a4a5a]">
-              {tab === 'today' ? '今日暂无主题，管理员还没出题' : '还没有主题，快来出题！'}
-            </div>
+          {themes.length === 0 && (
+            <div className="col-span-2 text-center py-20 text-[#4a4a5a]">还没有主题，快来出题！</div>
           )}
         </div>
       )}

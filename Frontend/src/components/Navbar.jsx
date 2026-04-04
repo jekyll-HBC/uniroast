@@ -44,7 +44,7 @@ export default function Navbar({ onOpenCreate }) {
         {/* 首页 Tab 栏（仅首页显示，X 风格） */}
         {isHome && (
           <div className="flex border-t border-white/8">
-            {[['today', '今日主题'], ['all', '全部主题']].map(([t, label]) => (
+            {[['recommend', '推荐'], ['today', '今日主题'], ['all', '全部主题']].map(([t, label]) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
