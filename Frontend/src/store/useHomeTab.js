@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 
+export const HOME_TABS = ['recommend', 'today', 'all']
+
 const useHomeTab = create(set => ({
-  tab: 'today',
+  tab: 'recommend',
   setTab: (tab) => set({ tab }),
 }))
 

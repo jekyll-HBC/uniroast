@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime, date
+from typing import Literal
 
 class UserRegister(BaseModel):
     username: str
@@ -48,20 +49,24 @@ class ThemeOut(BaseModel):
 
 # Posts
 TIER_THRESHOLDS = [
-    (4.5, "夯"),
-    (3.5, "顶级"),
-    (2.5, "人上人"),
-    (1.5, "NPC"),
-    (0.0, "拉完了"),
+    (0.92, "夯"),
+    (0.75, "顶级"),
+    (0.50, "人上人"),
+    (0.25, "NPC"),
 ]
 
-def score_to_tier(avg: float, vote_count: int) -> str:
-    if vote_count == 0:
+def ratio_to_tier(heng_count: int, total_votes: int) -> str:
+    if total_votes < 3:
         return "未评级"
+    rate = heng_count / total_votes
     for threshold, label in TIER_THRESHOLDS:
-        if avg >= threshold:
+        if rate >= threshold:
             return label
     return "拉完了"
+
+# Keep for backward compatibility with existing season data
+def score_to_tier(avg: float, vote_count: int) -> str:
+    return ratio_to_tier(int(round(avg * vote_count)), vote_count)
 
 class PostCreate(BaseModel):
     theme_id: int
@@ -72,10 +77,13 @@ class PostOut(BaseModel):
     id: int
     theme_id: int
     image_url: str
+    images: list[str] = []
     caption: str | None
     ai_comment: str | None
-    avg_score: float
+    avg_score: float        # stores heng_rate (0.0–1.0)
     vote_count: int
+    heng_count: int = 0
+    la_count: int = 0
     tier: str = "未评级"
     created_at: datetime
     author: UserOut
@@ -86,18 +94,37 @@ class PostOut(BaseModel):
     @classmethod
     def from_orm_with_tier(cls, post):
         obj = cls.model_validate(post)
-        obj.tier = score_to_tier(post.avg_score, post.vote_count)
+        obj.images = [post.image_url] if post.image_url else []
+        obj.la_count = obj.vote_count - obj.heng_count
+        obj.tier = ratio_to_tier(obj.heng_count, obj.vote_count)
+        return obj
+
+
+class FeedPostOut(PostOut):
+    theme_title: str = ""
+    theme_emoji: str = "🔥"
+
+    @classmethod
+    def from_orm_with_tier(cls, post):
+        obj = cls.model_validate(post)
+        obj.images = [post.image_url] if post.image_url else []
+        obj.la_count = obj.vote_count - obj.heng_count
+        obj.tier = ratio_to_tier(obj.heng_count, obj.vote_count)
+        if post.theme_obj:
+            obj.theme_title = post.theme_obj.title
+            obj.theme_emoji = post.theme_obj.emoji
         return obj
 
 
 # Votes
 class VoteCreate(BaseModel):
-    score: int  # 1-5 (夯=5, 顶级=4, 人上人=3, NPC=2, 拉完了=1)
+    vote_type: Literal["heng", "la"]
 
 class VoteOut(BaseModel):
     post_id: int
-    score: int
-    new_avg: float
+    vote_type: str
+    heng_count: int
+    la_count: int
     vote_count: int
     tier: str
 

@@ -4,18 +4,11 @@ import { ArrowLeft } from 'lucide-react'
 import api from '../api'
 import useAuth from '../store/useAuth'
 import useToast from '../store/useToast'
-import TierBadge, { getTierConfig } from '../components/TierBadge'
+import TierBadge from '../components/TierBadge'
 
-const TIERS = ['夯', '顶级', '人上人', 'NPC', '拉完了']
-const TIER_SCORES = { '夯': 5, '顶级': 4, '人上人': 3, 'NPC': 2, '拉完了': 1 }
-
-// 每个 Tier 的专属投票反馈
-const TIER_FEEDBACK = {
-  '夯':    { anim: 'animate-[shake_0.35s_ease-out]',  msg: '你封神了 🔥', particles: ['🔥','💥','⚡','🔥','💥'] },
-  '顶级':  { anim: 'animate-[vote-pop_0.32s_ease-out]', msg: '你眼光不错', particles: [] },
-  '人上人':{ anim: 'animate-[shake_0.35s_ease-out]',  msg: '就这样吧', particles: [] },
-  'NPC':   { anim: 'animate-[vote-pop_0.32s_ease-out]', msg: '路人甲，下一位', particles: [] },
-  '拉完了':{ anim: 'animate-[sink_0.3s_ease-out]',    msg: '送走了', particles: [] },
+const VOTE_FEEDBACK = {
+  heng: { anim: 'animate-[shake_0.35s_ease-out]',    msg: '你封神了 🔥', particles: ['🔥','💥','⚡','🔥','💥'] },
+  la:   { anim: 'animate-[sink_0.3s_ease-out]',      msg: '送走了 💀',   particles: [] },
 }
 
 function VoteParticle({ emoji, onDone }) {
@@ -69,36 +62,32 @@ export default function PostDetail() {
       .finally(() => setLoading(false))
   }, [id])
 
-  async function vote(tierName) {
+  async function vote(voteType) {
     if (!user) { navigate('/login'); return }
-    const score = TIER_SCORES[tierName]
-    const fb = TIER_FEEDBACK[tierName]
+    const fb = VOTE_FEEDBACK[voteType]
 
-    // 触发按钮动效
-    setVotingTier(tierName)
+    setVotingTier(voteType)
     setTimeout(() => setVotingTier(null), 400)
 
-    // 粒子（仅"夯"）
     if (fb.particles.length) {
       setParticles(fb.particles.map((e, i) => ({ id: Date.now() + i, emoji: e })))
     }
 
     try {
-      const { data } = await api.post(`/posts/${id}/vote`, { score })
+      const { data } = await api.post(`/posts/${id}/vote`, { vote_type: voteType })
       const newTier = data.tier
 
-      // Tier 变化动画
       if (newTier !== prevTier) {
         setTierChanging(true)
         setTimeout(() => {
-          setPost(p => ({ ...p, avg_score: data.new_avg, vote_count: data.vote_count, tier: newTier }))
+          setPost(p => ({ ...p, heng_count: data.heng_count, la_count: data.la_count, vote_count: data.vote_count, tier: newTier }))
           setPrevTier(newTier)
           setTierChanging(false)
         }, 220)
       } else {
-        setPost(p => ({ ...p, avg_score: data.new_avg, vote_count: data.vote_count, tier: newTier }))
+        setPost(p => ({ ...p, heng_count: data.heng_count, la_count: data.la_count, vote_count: data.vote_count, tier: newTier }))
       }
-      setLastVote({ tier: tierName, msg: fb.msg })
+      setLastVote({ type: voteType, msg: fb.msg })
     } catch { toast('投票失败，请重试') }
   }
 
@@ -106,7 +95,7 @@ export default function PostDetail() {
     if (tapTimer.current) {
       clearTimeout(tapTimer.current)
       tapTimer.current = null
-      vote('夯')
+      vote('heng')
       setShowHeart(true)
       setTimeout(() => setShowHeart(false), 800)
     } else {
@@ -186,52 +175,37 @@ export default function PostDetail() {
           {lastVote && <span className="ml-1 text-[#a855f7]">· {lastVote.msg}</span>}
         </p>
 
-        {/* 上排：高分 Tier（更大） */}
-        <div className="flex gap-2 mb-2">
-          {['夯', '顶级', '人上人'].map(t => {
-            const score = TIER_SCORES[t]
-            const isLast = lastVote?.tier === t
-            const cfg = getTierConfig(t)
-            const isVoting = votingTier === t
-            return (
-              <div key={t} className="flex-1 relative">
-                {/* 粒子（仅夯） */}
-                {isVoting && particles.map(p => (
-                  <VoteParticle key={p.id} emoji={p.emoji} onDone={() => setParticles([])} />
-                ))}
-                <button
-                  onClick={() => vote(t)}
-                  disabled={!user}
-                  className={`w-full py-4 rounded-xl text-sm font-bold transition-all disabled:opacity-40
-                    ${isVoting ? TIER_FEEDBACK[t].anim : ''}
-                    ${isLast ? `${cfg.bg} ${cfg.text} ${cfg.glow} scale-105` : 'bg-[#22222f] text-[#8888a0] hover:bg-[#2a2a38]'}`}
-                >
-                  {t}
-                </button>
-              </div>
-            )
-          })}
-        </div>
+        <div className="flex gap-3">
+          {/* 夯 */}
+          <div className="flex-1 relative">
+            {votingTier === 'heng' && particles.map(p => (
+              <VoteParticle key={p.id} emoji={p.emoji} onDone={() => setParticles([])} />
+            ))}
+            <button
+              onClick={() => vote('heng')}
+              disabled={!user}
+              className={`w-full py-5 rounded-xl text-base font-bold transition-all disabled:opacity-40
+                ${votingTier === 'heng' ? VOTE_FEEDBACK.heng.anim : ''}
+                ${lastVote?.type === 'heng' ? 'bg-[#ff3b3b] text-white glow-heng scale-105' : 'bg-[#22222f] text-[#8888a0] hover:bg-[#ff3b3b]/20 hover:text-[#ff3b3b]'}`}
+            >
+              🔥 夯
+              {post.heng_count > 0 && <span className="ml-1 text-sm font-normal opacity-80">{post.heng_count}</span>}
+            </button>
+          </div>
 
-        {/* 下排：低分 Tier（更小） */}
-        <div className="flex gap-2">
-          {['NPC', '拉完了'].map(t => {
-            const isLast = lastVote?.tier === t
-            const cfg = getTierConfig(t)
-            const isVoting = votingTier === t
-            return (
-              <button
-                key={t}
-                onClick={() => vote(t)}
-                disabled={!user}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-40
-                  ${isVoting ? TIER_FEEDBACK[t].anim : ''}
-                  ${isLast ? `${cfg.bg} ${cfg.text} scale-105` : 'bg-[#1a1a24] text-[#4a4a5a] hover:bg-[#22222f]'}`}
-              >
-                {t}
-              </button>
-            )
-          })}
+          {/* 拉完了 */}
+          <div className="flex-1">
+            <button
+              onClick={() => vote('la')}
+              disabled={!user}
+              className={`w-full py-5 rounded-xl text-base font-bold transition-all disabled:opacity-40
+                ${votingTier === 'la' ? VOTE_FEEDBACK.la.anim : ''}
+                ${lastVote?.type === 'la' ? 'bg-[#1a1a24] text-[#4a4a5a] border border-white/20 scale-105' : 'bg-[#1a1a24] text-[#4a4a5a] hover:bg-[#22222f]'}`}
+            >
+              💀 拉完了
+              {(post.la_count ?? 0) > 0 && <span className="ml-1 text-sm font-normal opacity-80">{post.la_count}</span>}
+            </button>
+          </div>
         </div>
 
         {!user && (
