@@ -19,6 +19,8 @@ export default function ProfileInfo() {
       await api.patch('/auth/me', form)
       await fetchMe()
       navigate(-1)
+    } catch {
+      alert('保存失败，请重试')
     } finally {
       setSaving(false)
     }
