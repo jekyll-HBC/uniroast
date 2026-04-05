@@ -4,8 +4,10 @@ import api from '../api'
 
 export default function MoodleThemes() {
   const [themes, setThemes] = useState([])
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  useEffect(() => { api.get('/themes/').then(r => setThemes(r.data)) }, [])
+  useEffect(() => { api.get('/themes/').then(r => setThemes(r.data)).finally(() => setLoading(false)) }, [])
+  if (loading) return <div className="px-4 py-4 space-y-3">{[1,2,3].map(i => <div key={i} className="h-24 bg-[#e8eaf6] rounded-lg animate-pulse" />)}</div>
   return (
     <div className="min-h-screen bg-white">
       <div className="bg-[#3b5998] px-4 py-3 flex items-center gap-3">

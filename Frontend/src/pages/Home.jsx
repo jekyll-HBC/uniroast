@@ -2,26 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X } from 'lucide-react'
 import api from '../api'
-
-function useCountdown() {
-  const [timeLeft, setTimeLeft] = useState('')
-  useEffect(() => {
-    function calc() {
-      const now = new Date()
-      const end = new Date()
-      end.setHours(23, 59, 59, 999)
-      const diff = end - now
-      const h = Math.floor(diff / 3600000)
-      const m = Math.floor((diff % 3600000) / 60000)
-      const s = Math.floor((diff % 60000) / 1000)
-      setTimeLeft(`${h}h ${m}m ${s}s`)
-    }
-    calc()
-    const id = setInterval(calc, 1000)
-    return () => clearInterval(id)
-  }, [])
-  return timeLeft
-}
+import useAuth from '../store/useAuth'
 
 export function CreateThemeModal({ onClose, onCreated }) {
   const [form, setForm] = useState({ title: '', emoji: '🔥', description: '', set_today: false })
@@ -98,6 +79,7 @@ export default function Home({ onOpenCreate }) {
   const [todayThemes, setTodayThemes] = useState([])
   const [themeTab, setThemeTab] = useState('today')
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   useEffect(() => {
     Promise.all([
@@ -110,6 +92,7 @@ export default function Home({ onOpenCreate }) {
   }, [])
 
   async function handleRandomRoast() {
+    if (!user) { navigate('/login'); return }
     try {
       const { data } = await api.get('/posts/?limit=100')
       if (!data.length) return

@@ -16,7 +16,6 @@ import VipPlaceholder from './pages/VipPlaceholder'
 import Navbar from './components/Navbar'
 import Toast from './components/Toast'
 import useAuth from './store/useAuth'
-import useHomeTab from './store/useHomeTab'
 
 function PrivateRoute({ children }) {
   const { token } = useAuth()
@@ -36,7 +35,6 @@ function MessagesPlaceholder() {
 function AppInner() {
   const { token, fetchMe } = useAuth()
   const [showCreate, setShowCreate] = useState(false)
-  const { setTab } = useHomeTab()
   const navigate = useNavigate()
 
   useEffect(() => { if (token) fetchMe() }, [])
@@ -69,8 +67,7 @@ function AppInner() {
       {showCreate && (
         <CreateThemeModal
           onClose={() => setShowCreate(false)}
-          onCreated={t => {
-            if (t.active_date) setTab('today')
+          onCreated={() => {
             setShowCreate(false)
           }}
         />

@@ -4,8 +4,14 @@ import api from '../api'
 
 export default function WeroastPage() {
   const [themes, setThemes] = useState([])
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  useEffect(() => { api.get('/themes/?today=true').then(r => setThemes(r.data)) }, [])
+  useEffect(() => {
+    api.get('/themes/?today=true')
+      .then(r => setThemes(r.data))
+      .finally(() => setLoading(false))
+  }, [])
+  if (loading) return <div className="space-y-3 px-4 py-4">{[1,2,3].map(i => <div key={i} className="h-20 bg-[#e8f5e8] rounded-2xl animate-pulse" />)}</div>
   return (
     <div className="max-w-lg mx-auto py-4 px-4 space-y-3">
       {themes.map(theme => (
