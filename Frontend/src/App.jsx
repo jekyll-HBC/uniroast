@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Home, { CreateThemeModal } from './pages/Home'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
+import ProfileInfo from './pages/ProfileInfo'
 import Leaderboard from './pages/Leaderboard'
 import ThemePage from './pages/ThemePage'
 import ThemeFeed from './pages/ThemeFeed'
@@ -63,6 +64,7 @@ function AppInner() {
         <Route path="/feedback" element={<FeedbackPlaceholder />} />
         <Route path="/vip" element={<VipPlaceholder />} />
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+        <Route path="/profile-info" element={<PrivateRoute><ProfileInfo /></PrivateRoute>} />
       </Routes>
       {showCreate && (
         <CreateThemeModal
