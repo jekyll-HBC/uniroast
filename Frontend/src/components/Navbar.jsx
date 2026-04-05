@@ -2,14 +2,11 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Home, User, LogIn, Trophy, MessageCircle } from 'lucide-react'
 import { useEffect } from 'react'
 import useAuth from '../store/useAuth'
-import useHomeTab from '../store/useHomeTab'
 
 export default function Navbar({ onOpenCreate }) {
   const { user, token, fetchMe } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const isHome = location.pathname === '/'
-  const { tab, setTab } = useHomeTab()
 
   useEffect(() => {
     if (token && !user) fetchMe()
@@ -41,24 +38,6 @@ export default function Navbar({ onOpenCreate }) {
           {user && <div className="w-20" />}
         </div>
 
-        {/* 首页 Tab 栏（仅首页显示，X 风格） */}
-        {isHome && (
-          <div className="flex border-t border-black/8">
-            {[['recommend', '推荐'], ['today', '今日主题'], ['all', '全部主题']].map(([t, label]) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className="flex-1 py-2.5 text-sm font-semibold relative transition-colors"
-                style={{ color: tab === t ? '#1a7a1a' : '#888888' }}
-              >
-                {label}
-                {tab === t && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-0.5 rounded-full bg-gradient-to-r from-[#1a7a1a] to-[#2d8c2d]" />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
       </header>
 
       {/* 底部 Tab Bar */}

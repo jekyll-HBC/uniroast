@@ -1,11 +1,7 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X } from 'lucide-react'
 import api from '../api'
-import useAuth from '../store/useAuth'
-import useHomeTab, { HOME_TABS } from '../store/useHomeTab'
-import TierBadge from '../components/TierBadge'
-import RecommendFeed from './RecommendFeed'
 
 function useCountdown() {
   const [timeLeft, setTimeLeft] = useState('')
@@ -50,23 +46,23 @@ export function CreateThemeModal({ onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-50 p-4">
-      <div className="bg-[#1a1a24] card-border rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white card-border rounded-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-[#f0f0f5]">创建新主题</h3>
-          <button onClick={onClose}><X size={20} className="text-[#4a4a5a]" /></button>
+          <h3 className="text-lg font-bold text-[#1a1a1a]">创建新主题</h3>
+          <button onClick={onClose}><X size={20} className="text-[#888888]" /></button>
         </div>
         <div className="flex space-x-2 mb-3">
           <input
             value={form.emoji}
             onChange={e => setForm(f => ({ ...f, emoji: e.target.value }))}
-            className="w-16 bg-[#22222f] border border-white/10 rounded-xl px-3 py-2 text-center text-xl focus:outline-none focus:border-[#a855f7] text-[#f0f0f5]"
+            className="w-16 bg-[#e8f5e8] border border-black/10 rounded-xl px-3 py-2 text-center text-xl focus:outline-none focus:border-[#1a7a1a] text-[#1a1a1a]"
             maxLength={2}
           />
           <input
             value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             placeholder="主题名称"
-            className="flex-1 bg-[#22222f] border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-[#a855f7] text-[#f0f0f5] placeholder-[#4a4a5a]"
+            className="flex-1 bg-[#e8f5e8] border border-black/10 rounded-xl px-3 py-2 focus:outline-none focus:border-[#1a7a1a] text-[#1a1a1a] placeholder-[#888888]"
           />
         </div>
         <textarea
@@ -74,21 +70,21 @@ export function CreateThemeModal({ onClose, onCreated }) {
           onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
           placeholder="描述一下这个主题（可选）"
           rows={2}
-          className="w-full bg-[#22222f] border border-white/10 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-[#a855f7] mb-3 text-[#f0f0f5] placeholder-[#4a4a5a]"
+          className="w-full bg-[#e8f5e8] border border-black/10 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-[#1a7a1a] mb-3 text-[#1a1a1a] placeholder-[#888888]"
         />
         <label className="flex items-center space-x-2 mb-4 cursor-pointer">
           <input
             type="checkbox"
             checked={form.set_today}
             onChange={e => setForm(f => ({ ...f, set_today: e.target.checked }))}
-            className="w-4 h-4 accent-[#a855f7]"
+            className="w-4 h-4 accent-[#1a7a1a]"
           />
-          <span className="text-sm text-[#8888a0]">设为今日主题</span>
+          <span className="text-sm text-[#555555]">设为今日主题</span>
         </label>
         <button
           onClick={handleSubmit}
           disabled={!form.title.trim() || loading}
-          className="w-full bg-gradient-to-r from-[#a855f7] to-[#ec4899] text-white py-3 rounded-xl font-bold disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-[#1a7a1a] to-[#2d8c2d] text-white py-3 rounded-xl font-bold disabled:opacity-50"
         >
           {loading ? '创建中...' : '创建'}
         </button>
@@ -97,27 +93,11 @@ export function CreateThemeModal({ onClose, onCreated }) {
   )
 }
 
-export default function Home() {
+export default function Home({ onOpenCreate }) {
   const [themes, setThemes] = useState([])
   const [todayThemes, setTodayThemes] = useState([])
-  const [loading, setLoading] = useState(true)
-  const { tab, setTab } = useHomeTab()
+  const [themeTab, setThemeTab] = useState('today')
   const navigate = useNavigate()
-  const countdown = useCountdown()
-
-  // 滑动手势（3 tabs）
-  const touchStartX = useRef(null)
-  function onTouchStart(e) { touchStartX.current = e.touches[0].clientX }
-  function onTouchEnd(e) {
-    if (touchStartX.current === null) return
-    const dx = e.changedTouches[0].clientX - touchStartX.current
-    if (Math.abs(dx) > 50) {
-      const idx = HOME_TABS.indexOf(tab)
-      if (dx < 0) setTab(HOME_TABS[Math.min(idx + 1, HOME_TABS.length - 1)])
-      else setTab(HOME_TABS[Math.max(idx - 1, 0)])
-    }
-    touchStartX.current = null
-  }
 
   useEffect(() => {
     Promise.all([
@@ -126,92 +106,87 @@ export default function Home() {
     ]).then(([todayRes, allRes]) => {
       setTodayThemes(todayRes.data)
       setThemes(allRes.data)
-    }).finally(() => setLoading(false))
+    })
   }, [])
 
-  // 推荐 tab
-  if (tab === 'recommend') {
-    return (
-      <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <RecommendFeed />
-      </div>
-    )
+  async function handleRandomRoast() {
+    try {
+      const { data } = await api.get('/posts/?limit=100')
+      if (!data.length) return
+      navigate(`/post/${data[Math.floor(Math.random() * data.length)].id}`)
+    } catch {}
   }
 
-  // 今日主题 tab
-  if (tab === 'today') {
-    return (
-      <div className="max-w-lg mx-auto py-4 px-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        {loading ? (
-          <div className="space-y-3">
-            {[1,2,3].map(i => <div key={i} className="h-20 bg-[#1a1a24] rounded-2xl animate-pulse" />)}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {todayThemes.map(theme => (
-              <button
-                key={theme.id}
-                onClick={() => navigate(`/theme/${theme.id}`)}
-                className="w-full bg-[#1a1a24] card-border rounded-2xl p-4 flex items-center space-x-4 hover:bg-[#22222f] transition text-left"
-              >
-                <span className="text-4xl">{theme.emoji}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <p className="font-bold text-[#f0f0f5] truncate">{theme.title}</p>
-                    {theme.is_official && (
-                      <span className="text-xs bg-[#a855f7]/20 text-[#a855f7] px-2 py-0.5 rounded-full shrink-0">官方</span>
-                    )}
-                  </div>
-                  {theme.description && (
-                    <p className="text-sm text-[#8888a0] truncate mt-0.5">{theme.description}</p>
-                  )}
-                  <p className="text-xs text-red-400 mt-1 font-mono">⏱ {countdown} 后截止</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-lg font-bold text-[#a855f7]">{theme.post_count}</p>
-                  <p className="text-xs text-[#4a4a5a]">参战</p>
-                </div>
-              </button>
-            ))}
-            {todayThemes.length === 0 && (
-              <div className="text-center py-20 text-[#4a4a5a]">今日暂无主题，管理员还没出题</div>
-            )}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  // 全部主题 tab — 贴吧式 2 列网格
   return (
-    <div className="max-w-lg mx-auto py-4 px-4" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      {loading ? (
-        <div className="grid grid-cols-2 gap-3">
-          {[1,2,3,4].map(i => <div key={i} className="h-28 bg-[#1a1a24] rounded-2xl animate-pulse" />)}
+    <div className="max-w-lg mx-auto">
+      {/* Green header */}
+      <div className="bg-gradient-to-r from-[#1a7a1a] to-[#2d8c2d] px-4 pt-4 pb-6">
+        <div className="flex items-center justify-center mb-4">
+          <span className="text-2xl font-black text-white tracking-widest">WeRoast</span>
         </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-3">
-          {themes.map(theme => (
-            <button
-              key={theme.id}
-              onClick={() => navigate(`/theme-feed/${theme.id}`)}
-              className="bg-[#1a1a24] card-border rounded-2xl p-4 flex flex-col items-start hover:bg-[#22222f] transition text-left"
-            >
-              <span className="text-3xl mb-2">{theme.emoji}</span>
-              <div className="flex items-center space-x-1.5 mb-1 w-full">
-                <p className="font-bold text-[#f0f0f5] text-sm truncate flex-1">{theme.title}</p>
-                {theme.is_official && (
-                  <span className="text-[10px] bg-[#a855f7]/20 text-[#a855f7] px-1.5 py-0.5 rounded-full shrink-0">官方</span>
-                )}
+        <div className="bg-white/15 rounded-2xl p-3 flex justify-around">
+          <button onClick={() => navigate('/recommend')} className="flex flex-col items-center gap-1">
+            <div className="w-12 h-12 rounded-xl bg-[#4CAF50] flex items-center justify-center text-2xl">⭐</div>
+            <span className="text-white text-xs">推薦</span>
+          </button>
+          <button onClick={() => navigate('/weroast')} className="flex flex-col items-center gap-1">
+            <div className="w-12 h-12 rounded-xl bg-[#FF6B35] flex items-center justify-center text-2xl">🔥</div>
+            <span className="text-white text-xs">WeRoast</span>
+          </button>
+        </div>
+      </div>
+
+      {/* App icon grid */}
+      <div className="bg-white rounded-2xl mx-4 -mt-3 p-4 card-border">
+        <div className="grid grid-cols-4 gap-3">
+          {[
+            { emoji: '🎓', label: 'Moodle',    onClick: () => navigate('/moodle-themes') },
+            { emoji: '📝', label: '我的帖子',  onClick: () => navigate('/profile') },
+            { emoji: '🔥', label: '今日最熱',  onClick: () => navigate('/leaderboard') },
+            { emoji: '🎲', label: '隨機Roast', onClick: handleRandomRoast },
+            { emoji: '✏️', label: '發帖',      onClick: () => onOpenCreate?.() },
+            { emoji: '📣', label: '意見反饋',  onClick: () => navigate('/feedback') },
+            { emoji: '👥', label: '好友',      onClick: () => navigate('/friends') },
+            { emoji: '👑', label: '會員',      onClick: () => navigate('/vip') },
+          ].map(({ emoji, label, onClick }) => (
+            <button key={label} onClick={onClick} className="flex flex-col items-center gap-1">
+              <div className="w-10 h-10 flex items-center justify-center text-xl"
+                style={{ clipPath: 'polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)', background: '#e8f5e8' }}>
+                {emoji}
               </div>
-              <p className="text-xs text-[#4a4a5a]">{theme.post_count} 参战</p>
+              <span className="text-[10px] text-[#333] text-center leading-tight">{label}</span>
             </button>
           ))}
-          {themes.length === 0 && (
-            <div className="col-span-2 text-center py-20 text-[#4a4a5a]">还没有主题，快来出题！</div>
-          )}
         </div>
-      )}
+      </div>
+
+      {/* Theme list */}
+      <div className="bg-white rounded-2xl mx-4 mt-3 mb-24 p-4 card-border">
+        <div className="flex items-center gap-4 mb-3">
+          {[['today','今日主題'],['all','每日主題']].map(([t, label]) => (
+            <button key={t} onClick={() => setThemeTab(t)}
+              className={`text-sm font-bold pb-1 ${themeTab === t ? 'text-[#1a7a1a] border-b-2 border-[#1a7a1a]' : 'text-[#aaa]'}`}>
+              {label}
+            </button>
+          ))}
+          <button onClick={() => navigate('/moodle-themes')} className="ml-auto text-xs text-[#aaa]">更多 ›</button>
+        </div>
+        {(themeTab === 'today' ? todayThemes : themes).map(theme => (
+          <button key={theme.id} onClick={() => navigate(`/theme/${theme.id}`)}
+            className="w-full flex items-start gap-2 py-2 border-b border-[#f5f5f5] last:border-0 text-left">
+            <span className="w-2 h-2 rounded-full bg-[#1a7a1a] mt-1.5 shrink-0" />
+            <div>
+              <p className="text-sm text-[#333]">{theme.title}</p>
+              <p className="text-xs text-[#aaa] mt-0.5">
+                {new Date(theme.created_at).toLocaleDateString('zh-CN')} · 👁 {theme.post_count}
+              </p>
+            </div>
+          </button>
+        ))}
+        {(themeTab === 'today' ? todayThemes : themes).length === 0 && (
+          <p className="text-center text-[#888] py-8 text-sm">暫無主題</p>
+        )}
+      </div>
     </div>
   )
 }
