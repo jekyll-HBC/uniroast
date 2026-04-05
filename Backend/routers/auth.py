@@ -33,6 +33,18 @@ def login(data: schemas.UserLogin, db: Session = Depends(get_db)):
 def me(current_user: models.User = Depends(auth.get_current_user)):
     return current_user
 
+@router.patch("/me", response_model=schemas.UserOut)
+def update_me(
+    data: schemas.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    for field, value in data.model_dump(exclude_none=True).items():
+        setattr(current_user, field, value)
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
 @router.get("/me/activity", response_model=list[schemas.ActivityOut])
 def my_activity(
     db: Session = Depends(get_db),
