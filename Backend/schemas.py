@@ -12,6 +12,7 @@ class UserLogin(BaseModel):
     password: str
 
 class UserUpdate(BaseModel):
+    username: str | None = None
     bio: str | None = None
     private_email: str | None = None
     phone: str | None = None

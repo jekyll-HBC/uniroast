@@ -7,6 +7,7 @@ export default function ProfileInfo() {
   const { user, fetchMe } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({
+    username: user?.username || '',
     bio: user?.bio || '',
     private_email: user?.private_email || '',
     phone: user?.phone || '',
@@ -49,7 +50,7 @@ export default function ProfileInfo() {
       <p className="text-xs text-[#888] px-6 mt-4 mb-1">基本信息</p>
       <div className="bg-white mx-4 rounded-xl overflow-hidden">
         {[
-          { label: '用戶名', value: user.username, editable: false },
+          { label: '用戶名', value: form.username, editable: true, key: 'username' },
           { label: '個人簡介', value: form.bio, editable: true, key: 'bio' },
           { label: '性別', value: user.gender || '未設置', editable: false },
           { label: '學院', value: user.college || '未設置', editable: false },
@@ -85,7 +86,7 @@ export default function ProfileInfo() {
 
       <p className="text-xs text-[#888] px-6 mt-4 mb-1">賬號安全</p>
       <div className="bg-white mx-4 rounded-xl overflow-hidden mb-8">
-        <button className="w-full flex items-center px-4 py-3">
+        <button onClick={() => alert('修改密碼功能即將上線')} className="w-full flex items-center px-4 py-3">
           <span className="text-sm text-[#333]">修改密碼</span>
           <span className="ml-auto text-[#1a7a1a] text-sm">›</span>
         </button>
