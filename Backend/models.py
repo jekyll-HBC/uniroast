@@ -15,6 +15,9 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     streak = Column(Integer, default=0)
     last_post_date = Column(Date, nullable=True)
+    bio = Column(String(200), nullable=True)
+    private_email = Column(String(100), nullable=True)
+    phone = Column(String(30), nullable=True)
 
     posts = relationship("Post", back_populates="author")
     votes = relationship("Vote", back_populates="voter")

@@ -49,8 +49,8 @@ export default function ProfileInfo() {
         {[
           { label: '用戶名', value: user.username, editable: false },
           { label: '個人簡介', value: form.bio, editable: true, key: 'bio' },
-          { label: '性別', value: '未設置', editable: false },
-          { label: '學院', value: '創新工程學院', editable: false },
+          { label: '性別', value: user.gender || '未設置', editable: false },
+          { label: '學院', value: user.college || '未設置', editable: false },
         ].map(({ label, value, editable, key }) => (
           <div key={label} className="flex items-center px-4 py-3 border-b border-[#f0f0f0] last:border-0">
             <span className="text-sm text-[#333] w-20 shrink-0">{label}</span>

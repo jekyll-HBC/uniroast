@@ -11,12 +11,20 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class UserUpdate(BaseModel):
+    bio: str | None = None
+    private_email: str | None = None
+    phone: str | None = None
+
 class UserOut(BaseModel):
     id: int
     username: str
     email: str
     avatar_url: str | None
     streak: int | None = 0
+    bio: str | None = None
+    private_email: str | None = None
+    phone: str | None = None
 
     class Config:
         from_attributes = True
