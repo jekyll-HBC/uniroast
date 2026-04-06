@@ -91,14 +91,16 @@ export default function Home({ onOpenCreate }) {
     })
   }, [])
 
-  async function handleRandomRoast() {
-    if (!user) { navigate('/login'); return }
-    try {
-      const { data } = await api.get('/posts/?limit=100')
-      if (!data.length) return
-      navigate(`/post/${data[Math.floor(Math.random() * data.length)].id}`)
-    } catch {}
-  }
+  const APPS = [
+    { emoji: '🎓', label: 'Moodle',    bg: '#e8eaf6', onClick: () => navigate('/moodle-themes') },
+    { emoji: '📋', label: '我的帖子',  bg: '#e3f2fd', onClick: () => navigate('/profile') },
+    { emoji: '🏆', label: '今日最熱',  bg: '#fce4ec', onClick: () => navigate('/leaderboard') },
+    { emoji: '🎲', label: '隨機Roast', bg: '#f3e5f5', onClick: handleRandomRoast },
+    { emoji: '✏️', label: '發帖',      bg: '#e8f5e9', onClick: () => onOpenCreate?.() },
+    { emoji: '📢', label: '意見反饋',  bg: '#fff3e0', onClick: () => navigate('/feedback') },
+    { emoji: '👥', label: '好友',      bg: '#e0f7fa', onClick: () => navigate('/friends') },
+    { emoji: '👑', label: '會員',      bg: '#fffde7', onClick: () => navigate('/vip') },
+  ]
 
   return (
     <div className="max-w-lg mx-auto">
@@ -122,19 +124,10 @@ export default function Home({ onOpenCreate }) {
       {/* App icon grid */}
       <div className="bg-white rounded-2xl mx-4 -mt-3 p-4 card-border">
         <div className="grid grid-cols-4 gap-3">
-          {[
-            { emoji: '🎓', label: 'Moodle',    onClick: () => navigate('/moodle-themes') },
-            { emoji: '📝', label: '我的帖子',  onClick: () => navigate('/profile') },
-            { emoji: '🔥', label: '今日最熱',  onClick: () => navigate('/leaderboard') },
-            { emoji: '🎲', label: '隨機Roast', onClick: handleRandomRoast },
-            { emoji: '✏️', label: '發帖',      onClick: () => onOpenCreate?.() },
-            { emoji: '📣', label: '意見反饋',  onClick: () => navigate('/feedback') },
-            { emoji: '👥', label: '好友',      onClick: () => navigate('/friends') },
-            { emoji: '👑', label: '會員',      onClick: () => navigate('/vip') },
-          ].map(({ emoji, label, onClick }) => (
+          {APPS.map(({ emoji, label, bg, onClick }) => (
             <button key={label} onClick={onClick} className="flex flex-col items-center gap-1">
-              <div className="w-10 h-10 flex items-center justify-center text-xl"
-                style={{ clipPath: 'polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)', background: '#e8f5e8' }}>
+              <div className="w-12 h-12 flex items-center justify-center text-2xl"
+                style={{ clipPath: 'polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)', background: bg }}>
                 {emoji}
               </div>
               <span className="text-[10px] text-[#333] text-center leading-tight">{label}</span>
