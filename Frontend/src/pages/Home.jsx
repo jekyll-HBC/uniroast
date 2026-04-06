@@ -95,7 +95,7 @@ export default function Home({ onOpenCreate }) {
     { emoji: '🎓', label: 'Moodle',    bg: '#e8eaf6', onClick: () => navigate('/moodle-themes') },
     { emoji: '📋', label: '我的帖子',  bg: '#e3f2fd', onClick: () => navigate('/profile') },
     { emoji: '🏆', label: '今日最熱',  bg: '#fce4ec', onClick: () => navigate('/leaderboard') },
-    { emoji: '🎲', label: '隨機Roast', bg: '#f3e5f5', onClick: handleRandomRoast },
+    { emoji: '🎲', label: '隨機Roast', bg: '#f3e5f5', onClick: () => handleRandomRoast() },
     { emoji: '✏️', label: '發帖',      bg: '#e8f5e9', onClick: () => onOpenCreate?.() },
     { emoji: '📢', label: '意見反饋',  bg: '#fff3e0', onClick: () => navigate('/feedback') },
     { emoji: '👥', label: '好友',      bg: '#e0f7fa', onClick: () => navigate('/friends') },
