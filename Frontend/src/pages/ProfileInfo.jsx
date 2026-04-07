@@ -13,6 +13,26 @@ export default function ProfileInfo() {
     phone: user?.phone || '',
   })
   const [saving, setSaving] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || null)
+  const [uploading, setUploading] = useState(false)
+
+  async function handleAvatarChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const { data } = await api.post('/upload/', fd)
+      setAvatarUrl(data.image_url)
+      await api.patch('/auth/me', { avatar_url: data.image_url })
+      await fetchMe()
+    } catch {
+      alert('頭像上傳失敗，請重試')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   async function handleSave() {
     setSaving(true)
@@ -29,6 +49,8 @@ export default function ProfileInfo() {
 
   if (!user) return null
 
+  const defaultAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`
+
   return (
     <div className="min-h-screen bg-[#f2f2f7]">
       <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-[#e0e0e0]">
@@ -41,9 +63,17 @@ export default function ProfileInfo() {
       </div>
 
       <div className="bg-white mx-4 mt-4 rounded-xl p-4 flex flex-col items-center gap-2">
-        <img src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
-          className="w-16 h-16 rounded-full" alt=""
-          onError={e => { e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}` }} />
+        <label className="cursor-pointer relative">
+          <img src={avatarUrl || defaultAvatar}
+            className="w-16 h-16 rounded-full" alt=""
+            onError={e => { e.target.src = defaultAvatar }} />
+          {uploading && (
+            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+              <span className="text-white text-xs">上傳中</span>
+            </div>
+          )}
+          <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={uploading} />
+        </label>
         <span className="text-xs text-[#1a7a1a]">點擊更換頭像</span>
       </div>
 
