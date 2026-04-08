@@ -99,6 +99,61 @@ type: feat | fix | docs | test | refactor | chore | ci
 
 ---
 
+## 需求文档同步规则
+
+**每次 scope 变更都必须同步更新 `Docs/requirements.md`，否则进度报告"需求控制"项会扣分。**
+
+触发同步的情形（满足任意一条即需更新）：
+- 修改已有功能的行为（例如：投票方式、API 参数、阈值）
+- 新增未在需求文档中列出的功能
+- 放弃或推迟原计划中的功能
+
+更新格式要求：
+- 修改已有 FR/NFR 时，同时注明变更原因（一句话注释即可）
+- 新增需求时按 `FR-XX` 顺序追加
+
+> AI 助手注意：每次写代码前先检查 `Docs/requirements.md`，完成后如有 scope 变更必须同步更新该文件。
+
+---
+
+## UML/架构图规范
+
+**课程明确要求**：进度报告（Deliverable 2）必须包含 4 类 UML 模型图。
+
+### 许可工具（必须使用其中之一）
+- draw.io / diagrams.net
+- PlantUML（推荐：VS Code 插件 `jebbs.plantuml` 或 https://www.plantuml.com/plantuml/uml）
+- Lucidchart
+- Keynote / Microsoft PowerPoint
+- TikZ（LaTeX）
+
+### 禁止方式（会被判 0 分）
+- 手绘后扫描或拍照
+- AI 生成的图片（包括 DALL-E、Midjourney、GPT-4 Vision 生成的图）
+- Mermaid 渲染截图（Mermaid 不在许可工具列表内）
+
+### 4 类必须覆盖的 UML 模型
+1. **Context Model** — 系统边界、外部实体（用户 / Cloudinary / ByteDance API / DB）
+2. **Interaction Model** — 用例图（Student / Admin actor）或序列图（发帖/投票流程）
+3. **Structural Model** — 组件图（Frontend 包 / Backend 包 / DB）或类图（User/Post/Theme/Vote/Season）
+4. **Behavioral Model** — 状态机图（帖子 Tier 状态转换）或活动图（发帖含 AI 锐评流程）
+
+> AI 助手注意：不要生成架构图图片，只能输出 PlantUML 源码（`.puml`），由团队成员用工具渲染。
+
+---
+
+## 里程碑截止日期
+
+| 里程碑 | 内容 | 截止日期 |
+|--------|------|---------|
+| Milestone 1 | Project Proposal (Deliverable 1) | 2026-03-21（已提交） |
+| Milestone 2 | Progress Report (Deliverable 2) | `<请填入实际截止日期>` |
+| Milestone 3 | Demo + Final Report (Deliverable 3 & 4) | `<请填入实际截止日期>` |
+
+> 团队请在 Moodle 确认截止日期后填入上表。
+
+---
+
 ## 学术诚信红线
 
 - 不能复用以前课程、实习或比赛的项目
