@@ -11,7 +11,7 @@
 **Team Members:**
 - [贺柏诚] - [1230003810] - [jekyll-HBC] - Role: [前端/后端/全栈]
 - [范云杰] - [学号] - [GitHub用户名] - Role: [前端/后端/全栈]
-- [祝天皓] - [学号] - [GitHub用户名] - Role: [前端/后端/全栈]
+- [祝天皓] - [1230002239] - [kirei886] - Role: [前端/后端/全栈]
 - [魏嘉琦] - [学号] - [GitHub用户名] - Role: [前端/后端/全栈]
 
 **Project Repository:** https://github.com/BSAI301/course-project-ex1-team-13 
