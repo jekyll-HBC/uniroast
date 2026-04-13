@@ -177,7 +177,7 @@ function PostGridCard({ post }) {
 export default function ThemePage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [theme, setTheme] = useState(null)
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -258,7 +258,7 @@ export default function ThemePage() {
       </div>
 
       {/* 参战 FAB */}
-      {user && (
+      {token && (
         <button
           onClick={() => setShowModal(true)}
           className="fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-br from-[#a855f7] to-[#ec4899] text-white rounded-full shadow-lg shadow-[#a855f7]/30 flex items-center justify-center text-2xl z-40 active:scale-95 transition-transform"
