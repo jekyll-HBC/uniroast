@@ -1,0 +1,173 @@
+<h2>第四节：其余页面</h2>
+<p class="subtitle">四个页面的改造方向——确认或提出修改意见</p>
+
+<style>
+.pages-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px; }
+.page-mock {
+  border-radius:16px; overflow:hidden;
+  box-shadow:0 4px 16px rgba(0,0,0,0.12);
+  font-family:-apple-system,sans-serif;
+}
+.page-title { font-size:12px; font-weight:bold; text-align:center; padding:6px 0 10px; color:#555; }
+.p-header { background:#1a7a1a; color:#fff; padding:10px 12px; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:6px; }
+.p-back { opacity:0.8; font-size:14px; }
+.p-body { background:#f5faf5; padding:8px; }
+.p-card { background:#fff; border-radius:10px; padding:10px; margin-bottom:6px; box-shadow:0 1px 3px rgba(0,0,0,0.06); font-size:10px; }
+.tier-badge { display:inline-block; border-radius:4px; padding:2px 6px; font-size:9px; font-weight:bold; color:#fff; }
+.rank-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid #f0f0f0; }
+.rank-num { width:20px; text-align:center; font-size:12px; font-weight:bold; color:#1a7a1a; }
+.rank-avatar { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; background:#e8f5e8; }
+.rank-info { flex:1; }
+.rank-name { font-size:10px; color:#333; font-weight:bold; }
+.rank-comment { font-size:9px; color:#888; }
+.profile-header { background:#1a7a1a; padding:20px 14px 14px; }
+.profile-avatar { width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:6px; }
+.profile-name { color:#fff; font-size:13px; font-weight:bold; }
+.profile-email { color:rgba(255,255,255,0.7); font-size:10px; }
+.stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; margin:8px 0; }
+.stat-item { background:#fff; border-radius:8px; padding:8px 4px; text-align:center; }
+.stat-num { font-size:14px; font-weight:bold; color:#1a7a1a; }
+.stat-label { font-size:8px; color:#888; margin-top:2px; }
+.list-item { background:#fff; display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid #f5f5f5; font-size:11px; color:#333; }
+.list-arrow { color:#ccc; }
+.post-img { background:#e8f5e8; height:120px; display:flex; align-items:center; justify-content:center; color:#888; font-size:11px; }
+.vote-row { display:flex; gap:8px; padding:10px; background:#fff; }
+.vote-btn { flex:1; padding:10px; border-radius:10px; text-align:center; font-size:11px; font-weight:bold; }
+.tier-section-header { display:flex; align-items:center; gap:6px; padding:6px 0 4px; }
+.tier-section-line { flex:1; height:1px; background:#e8f5e8; }
+.img-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+.img-thumb { background:#e0f0e0; height:48px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+</style>
+
+<div class="pages-grid">
+
+  <!-- ThemePage -->
+  <div>
+    <div class="page-title">主题详情页</div>
+    <div class="page-mock">
+      <div class="p-header"><span class="p-back">‹</span> 期末答辩现场</div>
+      <div style="background:#1a7a1a; padding:10px 12px 14px; text-align:center;">
+        <div style="font-size:28px;">🎤</div>
+        <div style="color:#fff; font-size:11px; margin-top:4px;">32 人参战 · 截止 23:59</div>
+      </div>
+      <div class="p-body">
+        <!-- Tier group -->
+        <div class="tier-section-header">
+          <span class="tier-badge" style="background:#ff3b3b;">夯</span>
+          <span style="font-size:9px;color:#888;">3 人</span>
+          <div class="tier-section-line"></div>
+        </div>
+        <div class="img-grid" style="margin-bottom:8px;">
+          <div class="img-thumb">📸</div>
+          <div class="img-thumb">📸</div>
+        </div>
+        <div class="tier-section-header">
+          <span class="tier-badge" style="background:#ff8c00;">顶级</span>
+          <span style="font-size:9px;color:#888;">8 人</span>
+          <div class="tier-section-line"></div>
+        </div>
+        <div class="img-grid">
+          <div class="img-thumb">📸</div>
+          <div class="img-thumb">📸</div>
+        </div>
+      </div>
+      <!-- FAB -->
+      <div style="background:#f5faf5;padding:8px;text-align:right;">
+        <span style="background:#1a7a1a;color:#fff;border-radius:20px;padding:6px 14px;font-size:10px;font-weight:bold;">🔥 参战</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div>
+    <div class="page-title">排行榜</div>
+    <div class="page-mock">
+      <div class="p-header">🏆 战绩榜</div>
+      <div class="p-body">
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <span style="background:#1a7a1a;color:#fff;border-radius:12px;padding:3px 10px;font-size:9px;">本赛季</span>
+          <span style="background:#fff;color:#888;border-radius:12px;padding:3px 10px;font-size:9px;border:1px solid #e0e0e0;">历史</span>
+        </div>
+        <div class="p-card" style="padding:6px 8px;">
+          <div class="rank-row" style="border:none;padding:4px 0;">
+            <div class="rank-num">🥇</div>
+            <div class="rank-avatar">张</div>
+            <div class="rank-info">
+              <div class="rank-name">张三 <span class="tier-badge" style="background:#ff3b3b;">夯</span></div>
+              <div class="rank-comment">"史诗级灾难PPT"</div>
+            </div>
+            <div style="font-size:10px;color:#1a7a1a;font-weight:bold;">9.8</div>
+          </div>
+          <div class="rank-row" style="border:none;padding:4px 0;">
+            <div class="rank-num">🥈</div>
+            <div class="rank-avatar">李</div>
+            <div class="rank-info">
+              <div class="rank-name">李四 <span class="tier-badge" style="background:#ff8c00;">顶级</span></div>
+              <div class="rank-comment">"PPT突然消失了"</div>
+            </div>
+            <div style="font-size:10px;color:#1a7a1a;font-weight:bold;">8.6</div>
+          </div>
+          <div class="rank-row" style="border:none;padding:4px 0;">
+            <div class="rank-num">🥉</div>
+            <div class="rank-avatar">王</div>
+            <div class="rank-info">
+              <div class="rank-name">王五 <span class="tier-badge" style="background:#ffd700;color:#333;">人上人</span></div>
+              <div class="rank-comment">"答辩完直接昏迷"</div>
+            </div>
+            <div style="font-size:10px;color:#1a7a1a;font-weight:bold;">7.4</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile -->
+  <div>
+    <div class="page-title">个人资料（"我的"）</div>
+    <div class="page-mock">
+      <div class="profile-header">
+        <div class="profile-avatar">😈</div>
+        <div class="profile-name">贺柏诚</div>
+        <div class="profile-email">bc.he@must.edu.mo</div>
+      </div>
+      <div style="background:#f5faf5;padding:8px;">
+        <div class="stat-row">
+          <div class="stat-item"><div class="stat-num">12</div><div class="stat-label">参战次数</div></div>
+          <div class="stat-item"><div class="stat-num">340</div><div class="stat-label">总获票</div></div>
+          <div class="stat-item"><div class="stat-num" style="color:#ff3b3b;">夯</div><div class="stat-label">最高等级</div></div>
+        </div>
+        <div class="p-card" style="padding:0;">
+          <div class="list-item">我的战绩 <span class="list-arrow">›</span></div>
+          <div class="list-item">投票记录 <span class="list-arrow">›</span></div>
+          <div class="list-item" style="color:#e74c3c;">退出登录 <span class="list-arrow">›</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PostDetail -->
+  <div>
+    <div class="page-title">帖子详情（保留动画特效）</div>
+    <div class="page-mock">
+      <div class="p-header"><span class="p-back">‹</span> 张三的答辩现场 <span class="tier-badge" style="background:#ff3b3b;margin-left:auto;">夯</span></div>
+      <div class="post-img">📸 图片区域</div>
+      <div style="background:#fff;padding:8px 10px;font-size:10px;color:#555;border-bottom:1px solid #f0f0f0;">
+        💬 "这是我见过最具艺术感的技术失误..." — AI 评委
+      </div>
+      <div class="vote-row">
+        <div class="vote-btn" style="background:#fff0f0;color:#ff3b3b;border:1px solid #ffcccc;">🔥 夯 · 218</div>
+        <div class="vote-btn" style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;">💀 拉完了 · 12</div>
+      </div>
+      <div style="background:#f5faf5;padding:6px 10px;font-size:9px;color:#888;text-align:center;">
+        双击图片快速投票 · 投票动画特效保留不变
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">
+  主题页 / 排行榜 / 个人资料 / 帖子详情 — 四页设计方向。<br>
+  帖子详情的投票动画（火焰粒子/下沉效果）完全保留，只换底色为白色系。<br>
+  有要改的地方请在终端说。
+</p>

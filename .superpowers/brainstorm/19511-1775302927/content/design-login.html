@@ -1,0 +1,141 @@
+<h2>第三节：登录页</h2>
+<p class="subtitle">参考 WeMust 登录页风格，保留 UniRoast 的邮箱+密码登录逻辑</p>
+
+<style>
+.two-phones { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; }
+.phone-frame {
+  width: 240px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  font-family: -apple-system, sans-serif;
+  flex-shrink: 0;
+}
+.phone-label {
+  text-align:center; font-size:11px; font-weight:bold;
+  padding: 6px 0 10px; color:#666;
+}
+
+/* WeMust light style login */
+.login-light {
+  background: #f0faf0;
+  min-height: 420px;
+  position: relative;
+  overflow: hidden;
+  padding: 40px 24px 32px;
+}
+.login-light-deco {
+  position:absolute; border-radius:50%;
+  opacity:0.5;
+}
+.login-logo-box {
+  width:64px; height:64px; background:#1a7a1a;
+  border-radius:16px; margin:0 auto 10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:32px;
+}
+.login-appname { text-align:center; font-size:18px; font-weight:bold; color:#1a1a1a; margin-bottom:4px; }
+.login-tagline { text-align:center; font-size:11px; color:#666; margin-bottom:32px; }
+.login-hint { text-align:center; font-size:12px; color:#888; margin-bottom:40px; }
+.login-bottom-link { text-align:center; font-size:12px; color:#1a7a1a; }
+
+/* WeMust dark green style login */
+.login-dark {
+  background: #1a7a1a;
+  min-height: 420px;
+  padding: 40px 24px 32px;
+}
+.login-welcome { font-size:22px; font-weight:bold; color:#fff; margin-bottom:6px; }
+.login-name { font-size:16px; color:#fff; margin-bottom:40px; }
+.login-unlock { text-align:center; font-size:13px; color:rgba(255,255,255,0.7); margin-bottom:60px; }
+.login-field {
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #fff;
+  font-size: 13px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.login-field::placeholder { color: rgba(255,255,255,0.5); }
+.login-btn {
+  width:100%; background:#fff; color:#1a7a1a;
+  border:none; border-radius:10px; padding:12px;
+  font-size:13px; font-weight:bold; margin-top:8px;
+  cursor:pointer;
+}
+.login-deco-circle {
+  position:absolute; border-radius:50%;
+  border: 2px solid rgba(255,255,255,0.3);
+}
+</style>
+
+<div class="two-phones">
+
+  <!-- Option A: Light green WeMust-style (like WeMust splash) -->
+  <div>
+    <div class="phone-label">A · 浅绿启动页风格（像 WeMust splash）</div>
+    <div class="phone-frame">
+      <div class="login-light">
+        <!-- Decorative elements like WeMust -->
+        <div class="login-light-deco" style="width:60px;height:60px;background:#86efac;top:-10px;left:-15px;"></div>
+        <div class="login-light-deco" style="width:30px;height:30px;background:#4ade80;top:40px;right:20px;"></div>
+        <div class="login-light-deco" style="width:20px;height:20px;background:#fde68a;bottom:80px;left:20px;"></div>
+        <div style="font-size:22px;position:absolute;top:60px;right:30px;opacity:0.6">✦</div>
+        <div style="font-size:14px;position:absolute;top:50px;right:55px;opacity:0.4">✦</div>
+
+        <!-- Logo -->
+        <div class="login-logo-box">🔥</div>
+        <div class="login-appname">UniRoast</div>
+        <div class="login-tagline">澳科大专属烤人平台</div>
+
+        <div class="login-hint">请输入账号密码</div>
+
+        <!-- Input fields styled lightly -->
+        <div style="background:#fff;border:1px solid #d0e8d0;border-radius:10px;padding:11px 14px;font-size:12px;color:#999;margin-bottom:8px;">邮箱</div>
+        <div style="background:#fff;border:1px solid #d0e8d0;border-radius:10px;padding:11px 14px;font-size:12px;color:#999;margin-bottom:14px;">密码</div>
+        <div style="background:#1a7a1a;color:#fff;border-radius:10px;padding:12px;font-size:13px;font-weight:bold;text-align:center;">登录 / 注册</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: Dark green full-screen (like logged-in WeMust) -->
+  <div>
+    <div class="phone-label">B · 深绿全屏风格（像 WeMust 解锁页）</div>
+    <div class="phone-frame">
+      <div class="login-dark" style="position:relative; overflow:hidden;">
+        <div class="login-deco-circle" style="width:80px;height:80px;top:-20px;right:-20px;"></div>
+        <div class="login-deco-circle" style="width:50px;height:50px;bottom:60px;left:-15px;"></div>
+
+        <div class="login-welcome">登录</div>
+        <div class="login-name">欢迎来烤人 ～</div>
+
+        <!-- Fake unlock hint (Easter egg) -->
+        <div class="login-unlock">请绘制求饶图案</div>
+
+        <!-- Real input fields -->
+        <input class="login-field" placeholder="邮箱" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;display:block;"/>
+        <input class="login-field" placeholder="密码" style="width:100%;box-sizing:border-box;margin-top:8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:12px 14px;color:#fff;font-size:13px;display:block;"/>
+        <div class="login-btn" style="text-align:center;margin-top:12px;">登录 / 注册</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="options" style="margin-top:20px;">
+  <div class="option" data-choice="login-a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>浅绿启动页</h3>
+      <p>更接近 WeMust 第一屏的轻盈感，Logo 居中，装饰元素飘浮</p>
+    </div>
+  </div>
+  <div class="option" data-choice="login-b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>深绿全屏</h3>
+      <p>更接近 WeMust 解锁页的强烈感，"请绘制求饶图案"做彩蛋文案</p>
+    </div>
+  </div>
+</div>

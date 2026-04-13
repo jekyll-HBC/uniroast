@@ -1,0 +1,206 @@
+<h2>第二节：首页布局</h2>
+<p class="subtitle">最重要的页面——WeMust 首页的每个区域都有对应替换</p>
+
+<style>
+.phone-frame {
+  width: 320px;
+  margin: 0 auto;
+  background: #f5faf5;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  font-family: -apple-system, sans-serif;
+}
+.phone-status { background:#1a7a1a; color:#fff; font-size:10px; padding:6px 16px; display:flex; justify-content:space-between; }
+.phone-header {
+  background: linear-gradient(180deg, #1a7a1a 0%, #1a7a1a 70%, #f5faf5 100%);
+  padding: 10px 16px 24px;
+  display: flex; align-items: center; gap: 10px;
+}
+.header-avatar { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:14px; }
+.header-tier { background:#fff; color:#1a7a1a; border-radius:20px; padding:3px 10px; font-size:11px; font-weight:bold; display:flex; align-items:center; gap:4px; }
+.header-tier .leaf { font-size:12px; }
+
+.quick-card {
+  margin: -12px 12px 0;
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 8px;
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.quick-item { text-align:center; }
+.quick-icon { font-size:22px; }
+.quick-label { font-size:9px; color:#444; margin-top:2px; }
+
+.section-card {
+  margin: 10px 12px 0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 10px;
+  padding: 4px 0;
+}
+.icon-item { text-align:center; }
+.icon-hex {
+  width: 36px; height: 36px; border-radius: 10px;
+  margin: 0 auto;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 18px;
+}
+.icon-label { font-size: 9px; color: #444; margin-top: 3px; }
+
+.today-section { margin: 10px 12px 0; }
+.today-label { font-size:12px; color:#333; font-weight:bold; padding:0 2px 6px; }
+.today-count { color:#1a7a1a; font-size:18px; font-weight:bold; }
+.today-theme {
+  background: #e8f5e8;
+  border-left: 3px solid #1a7a1a;
+  border-radius: 0 8px 8px 0;
+  padding: 7px 10px;
+  font-size: 10px; color: #333;
+}
+.today-time { font-size:9px; color:#888; }
+
+.announce-section { margin: 10px 12px 12px; }
+.announce-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.announce-tab { font-size:12px; font-weight:bold; color:#1a7a1a; border-bottom:2px solid #1a7a1a; padding-bottom:2px; }
+.announce-tab2 { font-size:12px; color:#999; }
+.announce-more { margin-left:auto; color:#999; font-size:11px; }
+.announce-item { margin-bottom:8px; }
+.announce-dot { color:#1a7a1a; font-size:10px; }
+.announce-title { font-size:10px; color:#333; line-height:1.4; }
+.announce-meta { font-size:9px; color:#999; margin-top:2px; }
+
+.bottom-nav {
+  background: #fff;
+  border-top: 1px solid #eee;
+  display: grid; grid-template-columns: repeat(5,1fr);
+  padding: 8px 0 12px;
+}
+.nav-item { text-align:center; font-size:9px; color:#999; }
+.nav-item.active { color:#1a7a1a; }
+.nav-icon { font-size:18px; }
+.nav-fab {
+  background: #1a7a1a;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  margin: -8px auto 0;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(26,122,26,0.4);
+}
+</style>
+
+<div class="phone-frame">
+  <!-- Status bar -->
+  <div class="phone-status">
+    <span>18:25</span>
+    <span>5G 94</span>
+  </div>
+
+  <!-- Header -->
+  <div class="phone-header">
+    <div class="header-avatar">😈</div>
+    <div class="header-tier"><span class="leaf">🔥</span> 42 夯</div>
+  </div>
+
+  <!-- Quick action 4 buttons -->
+  <div class="quick-card">
+    <div class="quick-item"><div class="quick-icon">🔥</div><div class="quick-label">烤人码</div></div>
+    <div class="quick-item"><div class="quick-icon">📊</div><div class="quick-label">评分码</div></div>
+    <div class="quick-item"><div class="quick-icon">🏆</div><div class="quick-label">战绩榜</div></div>
+    <div class="quick-item"><div class="quick-icon">😈</div><div class="quick-label">我的</div></div>
+  </div>
+
+  <!-- Icon grid -->
+  <div class="section-card">
+    <div class="icon-grid">
+      <div class="icon-item">
+        <div class="icon-hex" style="background:#3b82f6;">📧</div>
+        <div class="icon-label">消息</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-hex" style="background:#8b5cf6;">😭</div>
+        <div class="icon-label">Moodle</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-hex" style="background:#1a7a1a;">🎯</div>
+        <div class="icon-label">提交参战</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-hex" style="background:#f59e0b;">🏆</div>
+        <div class="icon-label">排行榜</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-hex" style="background:#ef4444;">🔥</div>
+        <div class="icon-label">今日主题</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-hex" style="background:#06b6d4;">📋</div>
+        <div class="icon-label">全部主题</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-hex" style="background:#ec4899;">👤</div>
+        <div class="icon-label">个人战绩</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-hex" style="background:#6b7280;">···</div>
+        <div class="icon-label">更多</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today's theme -->
+  <div class="today-section">
+    <div class="section-card">
+      <div class="today-label">今日被烤主题 <span class="today-count">1</span></div>
+      <div class="today-theme">
+        🔥 期末答辩现场<br>
+        <span class="today-time">截止 23:59 &nbsp;·&nbsp; 还剩 5:34:00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Latest roast news -->
+  <div class="announce-section">
+    <div class="section-card">
+      <div class="announce-header">
+        <span class="announce-tab">最新烤闻</span>
+        <span class="announce-tab2">答辩通知</span>
+        <span class="announce-more">›</span>
+      </div>
+      <div class="announce-item">
+        <span class="announce-dot">●</span>
+        <span class="announce-title"> 【夯】张三的期末PPT被评为史诗级灾难...</span>
+        <div class="announce-meta">UniRoast &nbsp;|&nbsp; 2026/04/04 &nbsp;|&nbsp; 👁 710</div>
+      </div>
+      <div class="announce-item">
+        <span class="announce-dot">●</span>
+        <span class="announce-title"> 【顶级】李四答辩时手抖导致PPT消失...</span>
+        <div class="announce-meta">UniRoast &nbsp;|&nbsp; 2026/04/04 &nbsp;|&nbsp; 👁 417</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active"><div class="nav-icon">🏠</div>首页</div>
+    <div class="nav-item"><div class="nav-icon">💬</div>消息</div>
+    <div class="nav-item"><div class="nav-fab">➕</div><div style="margin-top:4px">出题</div></div>
+    <div class="nav-item"><div class="nav-icon">🏆</div>战绩榜</div>
+    <div class="nav-item"><div class="nav-icon">😈</div>我的</div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:16px; text-align:center;">
+  首页 mockup — 绿色头部 + 4个快捷按钮 + 图标宫格 + 今日主题 + 最新烤闻<br>
+  如有要改的地方在终端说，或确认继续看登录页。
+</p>

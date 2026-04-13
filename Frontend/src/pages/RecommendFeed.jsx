@@ -48,15 +48,15 @@ export default function RecommendFeed() {
     return (
       <div className="space-y-0">
         {[1, 2, 3].map(i => (
-          <div key={i} className="bg-[#1a1a24] border-b border-white/[0.06] p-4 space-y-3">
+          <div key={i} className="bg-white border-b border-black/[0.06] p-4 space-y-3">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-[#22222f] animate-pulse" />
+              <div className="w-10 h-10 rounded-full bg-[#e8f5e8] animate-pulse" />
               <div className="flex-1 space-y-1.5">
-                <div className="h-3 bg-[#22222f] rounded animate-pulse w-24" />
-                <div className="h-2.5 bg-[#22222f] rounded animate-pulse w-14" />
+                <div className="h-3 bg-[#e8f5e8] rounded animate-pulse w-24" />
+                <div className="h-2.5 bg-[#e8f5e8] rounded animate-pulse w-14" />
               </div>
             </div>
-            <div className="h-48 bg-[#22222f] rounded animate-pulse" />
+            <div className="h-48 bg-[#e8f5e8] rounded animate-pulse" />
           </div>
         ))}
       </div>
@@ -65,7 +65,7 @@ export default function RecommendFeed() {
 
   if (posts.length === 0) {
     return (
-      <div className="text-center py-20 text-[#4a4a5a]">
+      <div className="text-center py-20 text-[#888888]">
         <p className="text-4xl mb-3">🔥</p>
         <p>还没有帖子，去参战吧！</p>
       </div>
@@ -77,7 +77,7 @@ export default function RecommendFeed() {
       {posts.map(post => (
         <FeedCard key={post.id} post={post} />
       ))}
-      <div ref={sentinelRef} className="py-4 text-center text-xs text-[#4a4a5a]">
+      <div ref={sentinelRef} className="py-4 text-center text-xs text-[#888888]">
         {loadingMore && '加载中...'}
         {!hasMore && !loading && posts.length > 0 && '没有更多了'}
       </div>
