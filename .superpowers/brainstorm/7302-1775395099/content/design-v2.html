@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeRoast UI 设计方案 v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; background: #f0f0f0; padding: 20px; }
+  h1 { text-align: center; margin-bottom: 6px; font-size: 20px; }
+  .meta { text-align: center; color: #888; font-size: 13px; margin-bottom: 24px; }
+  .screens { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .phone { width: 220px; flex-shrink: 0; }
+  .phone-label { text-align: center; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+  .phone-shell { width: 220px; height: 460px; border-radius: 32px; background: #1a1a1a; padding: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.3); overflow: hidden; }
+  .phone-screen { width: 100%; height: 100%; border-radius: 24px; overflow: hidden; position: relative; }
+  .note { margin-top: 8px; font-size: 10px; color: #666; padding: 0 4px; line-height: 1.5; }
+
+  /* LOGIN */
+  .login-screen { background: linear-gradient(160deg, #1a7a1a 60%, #145c14); padding: 28px 20px; color: white; height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+  .deco { position: absolute; border-radius: 50%; background: rgba(255,255,255,.08); pointer-events: none; }
+  .login-title { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+  .login-sub { font-size: 13px; opacity: .8; margin-bottom: 32px; }
+  .login-field { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); border-radius: 12px; padding: 10px 14px; color: white; font-size: 12px; margin-bottom: 10px; }
+  .login-field::placeholder { color: rgba(255,255,255,.5); }
+  .login-field-label { font-size: 10px; opacity: .7; margin-bottom: 4px; }
+  .login-btn-main { background: white; color: #1a7a1a; border-radius: 12px; padding: 10px; text-align: center; font-size: 13px; font-weight: 700; margin-top: 8px; }
+  .login-register { text-align: center; font-size: 11px; opacity: .6; margin-top: 12px; }
+
+  /* MY PAGE */
+  .my-screen { background: #f2f2f7; height: 100%; display: flex; flex-direction: column; }
+  .my-header { background: linear-gradient(160deg, #1a7a1a, #2d8c2d); padding: 16px 14px 20px; color: white; }
+  .my-avatar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .avatar-lg { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid rgba(255,255,255,.4); }
+  .my-name { font-size: 16px; font-weight: 700; }
+  .my-bio { font-size: 10px; opacity: .75; margin-top: 2px; }
+  .my-stats { display: flex; gap: 0; }
+  .stat-item { flex: 1; text-align: center; }
+  .stat-num { font-size: 16px; font-weight: 700; }
+  .stat-label { font-size: 9px; opacity: .7; }
+  .stat-divider { width: 1px; background: rgba(255,255,255,.3); margin: 4px 0; }
+  .my-body { flex: 1; overflow-y: auto; }
+  .green-btn { background: #1a7a1a; color: white; margin: 10px 12px 6px; border-radius: 10px; padding: 9px 12px; font-size: 11px; display: flex; align-items: center; justify-content: space-between; }
+  .two-col { display: flex; margin: 0 12px 8px; gap: 8px; }
+  .two-col-item { flex: 1; background: white; border-radius: 10px; padding: 8px; display: flex; align-items: center; gap: 6px; font-size: 10px; }
+  .two-col-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .menu-group { background: white; margin: 0 12px 8px; border-radius: 10px; overflow: hidden; }
+  .menu-row { display: flex; align-items: center; padding: 9px 12px; font-size: 11px; border-bottom: .5px solid #f0f0f0; gap: 8px; }
+  .menu-row:last-child { border-bottom: none; }
+  .menu-icon { width: 20px; height: 20px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .menu-arrow { margin-left: auto; color: #ccc; font-size: 12px; }
+
+  /* PERSONAL INFO */
+  .info-screen { background: #f2f2f7; height: 100%; display: flex; flex-direction: column; }
+  .info-topbar { background: white; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: .5px solid #e0e0e0; }
+  .info-back { font-size: 13px; color: #1a7a1a; }
+  .info-title { font-size: 13px; font-weight: 600; }
+  .info-save { font-size: 12px; color: #1a7a1a; font-weight: 600; }
+  .info-avatar-section { background: white; margin: 10px 12px; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .info-avatar { width: 56px; height: 56px; border-radius: 50%; background: #cde8cd; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+  .info-avatar-hint { font-size: 10px; color: #1a7a1a; }
+  .info-group { background: white; margin: 0 12px 8px; border-radius: 12px; overflow: hidden; }
+  .info-row { display: flex; align-items: center; padding: 10px 14px; border-bottom: .5px solid #f0f0f0; }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { font-size: 11px; color: #333; width: 60px; flex-shrink: 0; }
+  .info-value { font-size: 11px; color: #888; margin-left: auto; text-align: right; max-width: 120px; }
+  .info-value.editable { color: #1a7a1a; }
+  .info-section-title { font-size: 10px; color: #888; padding: 6px 14px 2px; }
+
+  /* HOME */
+  .home-screen { background: #f5faf5; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+  .home-header { background: linear-gradient(160deg, #1a7a1a, #2d8c2d); padding: 10px 12px 14px; color: white; }
+  .home-topbar { display: flex; align-items: center; justify-content: center; margin-bottom: 10px; position: relative; }
+  .home-title { font-size: 16px; font-weight: 800; letter-spacing: 1px; }
+  .quick-row { background: rgba(255,255,255,.15); border-radius: 10px; padding: 8px 4px 4px; display: flex; justify-content: space-around; }
+  .quick-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .quick-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .quick-label { font-size: 9px; color: white; }
+  .home-body { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 6px; }
+  .app-grid { background: white; border-radius: 10px; padding: 8px; }
+  .app-grid-inner { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .app-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .hex { width: 34px; height: 34px; clip-path: polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .app-label { font-size: 8px; color: #333; text-align: center; }
+  .section-card { background: white; border-radius: 10px; padding: 8px 10px; }
+  .section-tabs { display: flex; gap: 12px; margin-bottom: 8px; align-items: center; }
+  .tab-active { font-size: 11px; font-weight: 700; color: #1a7a1a; border-bottom: 2px solid #1a7a1a; padding-bottom: 2px; }
+  .tab-inactive { font-size: 11px; color: #aaa; }
+  .tab-more { margin-left: auto; font-size: 9px; color: #aaa; }
+  .theme-item { display: flex; align-items: flex-start; gap: 5px; padding: 4px 0; border-bottom: .5px solid #f5f5f5; }
+  .theme-dot { width: 5px; height: 5px; border-radius: 50%; background: #1a7a1a; margin-top: 4px; flex-shrink: 0; }
+  .theme-text { font-size: 9px; color: #333; line-height: 1.4; }
+  .theme-meta { font-size: 8px; color: #aaa; margin-top: 1px; }
+
+  /* BOTTOM NAV */
+  .bottom-nav { background: white; border-top: .5px solid #e0e0e0; display: flex; justify-content: space-around; padding: 5px 0 3px; flex-shrink: 0; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: 8px; color: #aaa; }
+  .nav-item.active { color: #1a7a1a; }
+  .nav-icon { font-size: 14px; }
+  .nav-center { width: 32px; height: 32px; border-radius: 50%; background: #1a7a1a; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-top: -10px; box-shadow: 0 2px 8px rgba(26,122,26,.4); }
+</style>
+</head>
+<body>
+<h1>WeRoast — UI 设计方案 v2</h1>
+<p class="meta">高保真复刻 WeMust · 更新版</p>
+
+<div class="screens">
+
+  <!-- LOGIN -->
+  <div class="phone">
+    <div class="phone-label">登录页</div>
+    <div class="phone-shell"><div class="phone-screen">
+      <div class="login-screen">
+        <div class="deco" style="width:130px;height:130px;top:-40px;right:-30px"></div>
+        <div class="deco" style="width:80px;height:80px;bottom:-20px;left:-20px"></div>
+        <div class="login-title">登錄</div>
+        <div class="login-sub">烤肉人，歡迎您～</div>
+        <div class="login-field-label">賬號</div>
+        <div class="login-field">請輸入學號或郵箱</div>
+        <div class="login-field-label">密碼</div>
+        <div class="login-field">••••••••</div>
+        <div class="login-btn-main">登 錄</div>
+        <div class="login-register">還沒有賬號？立即注冊</div>
+      </div>
+    </div></div>
+    <div class="note">✓ 账号密码登录<br>✓ 绿色背景 + 装饰圆圈，还原 WeMust 风格</div>
+  </div>
+
+  <!-- MY PAGE -->
+  <div class="phone">
+    <div class="phone-label">我的页</div>
+    <div class="phone-shell"><div class="phone-screen">
+      <div class="my-screen">
+        <div class="my-header">
+          <div class="my-avatar-row">
+            <div class="avatar-lg">👤</div>
+            <div>
+              <div class="my-name">贺柏诚</div>
+              <div class="my-bio">MUST 创新工程学院 · 在读</div>
+            </div>
+          </div>
+          <div class="my-stats">
+            <div class="stat-item"><div class="stat-num">42</div><div class="stat-label">帖子</div></div>
+            <div class="stat-divider"></div>
+            <div class="stat-item"><div class="stat-num">1.2k</div><div class="stat-label">獲票</div></div>
+            <div class="stat-divider"></div>
+            <div class="stat-item"><div class="stat-num">7</div><div class="stat-label">連戰天</div></div>
+            <div class="stat-divider"></div>
+            <div class="stat-item"><div class="stat-num">88</div><div class="stat-label">關注</div></div>
+            <div class="stat-divider"></div>
+            <div class="stat-item"><div class="stat-num">233</div><div class="stat-label">粉絲</div></div>
+          </div>
+        </div>
+        <div class="my-body">
+          <div class="green-btn"><span>✦ 個人信息</span><span>›</span></div>
+          <div class="two-col">
+            <div class="two-col-item">
+              <div class="two-col-icon" style="background:#e8f5e8">📣</div>
+              <span>意見反饋</span>
+            </div>
+            <div class="two-col-item">
+              <div class="two-col-icon" style="background:#fff3e0">👑</div>
+              <span>會員</span>
+            </div>
+          </div>
+          <div class="menu-group">
+            <div class="menu-row"><div class="menu-icon" style="background:#e8f5e8">📝</div>我的帖子<div class="menu-arrow">›</div></div>
+            <div class="menu-row"><div class="menu-icon" style="background:#fce4ec">⭐</div>我的收藏<div class="menu-arrow">›</div></div>
+            <div class="menu-row"><div class="menu-icon" style="background:#e3f2fd">👥</div>好友<div class="menu-arrow">›</div></div>
+            <div class="menu-row"><div class="menu-icon" style="background:#f3e5f5">⚙️</div>設置<div class="menu-arrow">›</div></div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-icon">🏠</div>首頁</div>
+          <div class="nav-item"><div class="nav-icon">💬</div>消息</div>
+          <div class="nav-item"><div class="nav-center">🧑‍🎓</div></div>
+          <div class="nav-item"><div class="nav-icon">📅</div>課表</div>
+          <div class="nav-item active"><div class="nav-icon">👤</div>我的</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="note">✓ Instagram 风格头部：头像+简介+5项统计<br>✓ 个人信息绿色按钮（替换电子学生卡）<br>✓ 意见反馈+会员双列<br>✓ 菜单：我的帖子/收藏/好友/设置</div>
+  </div>
+
+  <!-- PERSONAL INFO -->
+  <div class="phone">
+    <div class="phone-label">个人信息页</div>
+    <div class="phone-shell"><div class="phone-screen">
+      <div class="info-screen">
+        <div class="info-topbar">
+          <div class="info-back">‹ 返回</div>
+          <div class="info-title">個人信息</div>
+          <div class="info-save">保存</div>
+        </div>
+        <div class="info-avatar-section">
+          <div class="info-avatar">👤</div>
+          <div class="info-avatar-hint">點擊更換頭像</div>
+        </div>
+        <div class="info-section-title">基本信息</div>
+        <div class="info-group">
+          <div class="info-row"><span class="info-label">用戶名</span><span class="info-value editable">bochengh ›</span></div>
+          <div class="info-row"><span class="info-label">姓名</span><span class="info-value">贺柏诚</span></div>
+          <div class="info-row"><span class="info-label">個人簡介</span><span class="info-value editable">寫點什麼... ›</span></div>
+          <div class="info-row"><span class="info-label">性別</span><span class="info-value">男</span></div>
+          <div class="info-row"><span class="info-label">學院</span><span class="info-value">創新工程學院</span></div>
+        </div>
+        <div class="info-section-title">聯繫方式</div>
+        <div class="info-group">
+          <div class="info-row"><span class="info-label">大學郵箱</span><span class="info-value" style="font-size:9px">1230003810@student.must.edu.mo</span></div>
+          <div class="info-row"><span class="info-label">私人郵箱</span><span class="info-value editable">hemikel90@gmail.com ›</span></div>
+          <div class="info-row"><span class="info-label">手機號</span><span class="info-value editable">+86 139···· ›</span></div>
+        </div>
+        <div class="info-section-title">賬號安全</div>
+        <div class="info-group">
+          <div class="info-row"><span class="info-label">修改密碼</span><span class="info-value editable">›</span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="note">✓ 参考 Instagram/Facebook 风格<br>✓ 可编辑项：用户名、简介、私人邮箱、手机、密码<br>✓ 只读项：姓名、性别、学院、大学邮箱</div>
+  </div>
+
+  <!-- HOME -->
+  <div class="phone">
+    <div class="phone-label">首页</div>
+    <div class="phone-shell"><div class="phone-screen">
+      <div class="home-screen">
+        <div class="home-header">
+          <div class="home-topbar">
+            <div class="home-title">WeRoast</div>
+          </div>
+          <div class="quick-row">
+            <div class="quick-item">
+              <div class="quick-icon" style="background:#4CAF50">⭐</div>
+              <div class="quick-label">推薦</div>
+            </div>
+            <div class="quick-item">
+              <div class="quick-icon" style="background:#FF6B35">🔥</div>
+              <div class="quick-label">WeRoast</div>
+            </div>
+          </div>
+        </div>
+        <div class="home-body">
+          <div class="app-grid">
+            <div class="app-grid-inner">
+              <div class="app-item"><div class="hex" style="background:#e8eaf6">🎓</div><div class="app-label">Moodle</div></div>
+              <div class="app-item"><div class="hex" style="background:#e3f2fd">📝</div><div class="app-label">我的帖子</div></div>
+              <div class="app-item"><div class="hex" style="background:#fce4ec">🔥</div><div class="app-label">今日最熱</div></div>
+              <div class="app-item"><div class="hex" style="background:#f3e5f5">🎲</div><div class="app-label">隨機Roast</div></div>
+              <div class="app-item"><div class="hex" style="background:#e8f5e9">✏️</div><div class="app-label">發帖</div></div>
+              <div class="app-item"><div class="hex" style="background:#fff3e0">📣</div><div class="app-label">意見反饋</div></div>
+              <div class="app-item"><div class="hex" style="background:#e0f7fa">👥</div><div class="app-label">好友</div></div>
+              <div class="app-item"><div class="hex" style="background:#fffde7">👑</div><div class="app-label">會員</div></div>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-tabs">
+              <div class="tab-active">今日主題</div>
+              <div class="tab-inactive">每日主題</div>
+              <div class="tab-more">› 更多</div>
+            </div>
+            <div class="theme-item">
+              <div class="theme-dot"></div>
+              <div><div class="theme-text">如果MUST食堂是米其林餐廳...</div><div class="theme-meta">2026/04/05 · 👁 710</div></div>
+            </div>
+            <div class="theme-item">
+              <div class="theme-dot"></div>
+              <div><div class="theme-text">教授上課最離譜的一句話</div><div class="theme-meta">2026/04/05 · 👁 417</div></div>
+            </div>
+            <div class="theme-item">
+              <div class="theme-dot"></div>
+              <div><div class="theme-text">宿舍最神秘的室友行為</div><div class="theme-meta">2026/04/04 · 👁 389</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item active"><div class="nav-icon">🏠</div>首頁</div>
+          <div class="nav-item"><div class="nav-icon">💬</div>消息</div>
+          <div class="nav-item"><div class="nav-center">🧑‍🎓</div></div>
+          <div class="nav-item"><div class="nav-icon">📅</div>課表</div>
+          <div class="nav-item"><div class="nav-icon">👤</div>我的</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="note">✓ 顶部居中 "WeRoast" 大字<br>✓ 去掉扫码/积分按钮<br>✓ 应用框：WeMust→Moodle<br>✓ 今日主题/每日主题 tab</div>
+  </div>
+
+</div>
+<p style="text-align:center;margin-top:20px;font-size:12px;color:#888">这个方案 OK 吗？确认后我们写设计文档。</p>
+</body>
+</html>

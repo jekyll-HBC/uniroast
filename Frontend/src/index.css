@@ -2,18 +2,18 @@
 
 @theme {
   /* 背景层级 */
-  --color-bg-base: #0f0f13;
-  --color-bg-card: #1a1a24;
-  --color-bg-card2: #22222f;
+  --color-bg-base: #f5faf5;
+  --color-bg-card: #ffffff;
+  --color-bg-card2: #e8f5e8;
 
   /* 品牌色 */
-  --color-brand-purple: #a855f7;
-  --color-brand-pink: #ec4899;
+  --color-brand-purple: #1a7a1a;
+  --color-brand-pink: #2d8c2d;
 
   /* 文字 */
-  --color-text-primary: #f0f0f5;
-  --color-text-secondary: #8888a0;
-  --color-text-muted: #4a4a5a;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #555555;
+  --color-text-muted: #888888;
 
   /* Tier 颜色 */
   --color-tier-heng-bg: #ff3b3b;
@@ -26,7 +26,7 @@
   --color-tier-bottom-text: #4a4a5a;
 
   /* 边框 */
-  --color-border-subtle: rgba(255,255,255,0.08);
+  --color-border-subtle: rgba(0,0,0,0.08);
 
   /* 自定义动画 */
   --animate-vote-pop: vote-pop 0.32s ease-out;
@@ -79,15 +79,15 @@
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  /* 毛玻璃暗底 */
+  /* 毛玻璃亮底 */
   .glass-dark {
-    background: rgba(15,15,19,0.85);
+    background: rgba(245,250,245,0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
   /* 卡片微边框 */
   .card-border {
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(0,0,0,0.08);
   }
   /* Tier 外发光 */
   .glow-heng {
@@ -106,8 +106,8 @@ input, textarea, select {
   font-size: 16px;
 }
 
-/* 全局暗色背景 */
+/* 全局亮色背景 */
 body {
-  background-color: #0f0f13;
-  color: #f0f0f5;
+  background-color: #f5faf5;
+  color: #1a1a1a;
 }
