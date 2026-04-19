@@ -9,6 +9,7 @@ from routers import posts as posts_router
 from routers import upload as upload_router
 from routers import themes as themes_router
 from routers import seasons as seasons_router
+from routers import users as users_router
 from routers.seasons import get_or_create_current_season
 from datetime import date
 import schemas
@@ -89,6 +90,7 @@ app.include_router(posts_router.router)
 app.include_router(upload_router.router)
 app.include_router(themes_router.router)
 app.include_router(seasons_router.router)
+app.include_router(users_router.router)
 
 @app.get("/")
 def read_root():

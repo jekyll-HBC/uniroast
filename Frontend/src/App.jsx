@@ -11,7 +11,7 @@ import PostDetail from './pages/PostDetail'
 import MoodleThemes from './pages/MoodleThemes'
 import RecommendPage from './pages/RecommendPage'
 import WeroastPage from './pages/WeroastPage'
-import FriendsPlaceholder from './pages/FriendsPlaceholder'
+import Friends from './pages/Friends'
 import FeedbackPlaceholder from './pages/FeedbackPlaceholder'
 import VipPlaceholder from './pages/VipPlaceholder'
 import Navbar from './components/Navbar'
@@ -60,7 +60,7 @@ function AppInner() {
         <Route path="/moodle-themes" element={<MoodleThemes />} />
         <Route path="/recommend" element={<RecommendPage />} />
         <Route path="/weroast" element={<WeroastPage />} />
-        <Route path="/friends" element={<FriendsPlaceholder />} />
+        <Route path="/friends" element={<PrivateRoute><Friends /></PrivateRoute>} />
         <Route path="/feedback" element={<FeedbackPlaceholder />} />
         <Route path="/vip" element={<VipPlaceholder />} />
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />

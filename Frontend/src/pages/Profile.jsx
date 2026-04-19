@@ -8,6 +8,7 @@ export default function Profile() {
   const { user } = useAuth()
   const [posts, setPosts] = useState([])
   const [activities, setActivities] = useState([])
+  const [followCounts, setFollowCounts] = useState({ following: 0, followers: 0 })
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
@@ -16,9 +17,12 @@ export default function Profile() {
     Promise.all([
       api.get(`/posts/?user_id=${user.id}`),
       api.get('/auth/me/activity'),
-    ]).then(([postsRes, actRes]) => {
+      api.get(`/users/${user.id}/following`),
+      api.get(`/users/${user.id}/followers`),
+    ]).then(([postsRes, actRes, followingRes, followersRes]) => {
       setPosts(postsRes.data)
       setActivities(actRes.data)
+      setFollowCounts({ following: followingRes.data.length, followers: followersRes.data.length })
     }).finally(() => setLoading(false))
   }, [user])
 
@@ -46,8 +50,8 @@ export default function Profile() {
             { num: posts.length, label: '帖子' },
             { num: totalVotes, label: '獲票' },
             { num: user.streak || 0, label: '連戰天' },
-            { num: 0, label: '關注' },
-            { num: 0, label: '粉絲' },
+            { num: followCounts.following, label: '關注' },
+            { num: followCounts.followers, label: '粉絲' },
           ].map(({ num, label }) => (
             <div key={label} className="text-center">
               <p className="text-lg font-bold text-white">{num}</p>
