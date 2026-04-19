@@ -16,6 +16,7 @@ class UserUpdate(BaseModel):
     bio: str | None = None
     private_email: str | None = None
     phone: str | None = None
+    avatar_url: str | None = None
 
 class UserOut(BaseModel):
     id: int
@@ -33,6 +34,16 @@ class UserOut(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+class UserPublicOut(BaseModel):
+    id: int
+    username: str
+    avatar_url: str | None
+    bio: str | None = None
+    is_following: bool = False
+
+    class Config:
+        from_attributes = True
 
 
 # Themes
