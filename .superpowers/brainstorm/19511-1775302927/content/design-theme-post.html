@@ -1,0 +1,118 @@
+<h2>更新：主题详情页 + 帖子详情</h2>
+<p class="subtitle">交互逻辑保持原样，只换颜色皮肤</p>
+
+<style>
+.two-phones { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; align-items:flex-start; }
+.phone-wrap { flex-shrink:0; }
+.phone-frame {
+  width:260px;
+  border-radius:22px; overflow:hidden;
+  box-shadow:0 6px 24px rgba(0,0,0,0.15);
+  font-family:-apple-system,sans-serif;
+}
+.phone-label { text-align:center; font-size:11px; font-weight:bold; padding:6px 0 10px; color:#555; }
+.p-header { background:#1a7a1a; color:#fff; padding:10px 12px; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:6px; }
+.p-back { opacity:0.8; font-size:16px; }
+.tier-badge { display:inline-block; border-radius:4px; padding:2px 6px; font-size:9px; font-weight:bold; color:#fff; }
+</style>
+
+<div class="two-phones">
+
+  <!-- ThemePage: list mode -->
+  <div class="phone-wrap">
+    <div class="phone-label">主题详情页（帖子列表，保持原操作）</div>
+    <div class="phone-frame">
+      <!-- Green hero header -->
+      <div style="background:#1a7a1a; padding:16px 14px 14px; text-align:center;">
+        <div style="font-size:32px;">🎤</div>
+        <div style="color:#fff; font-size:14px; font-weight:bold; margin-top:4px;">期末答辩现场</div>
+        <div style="color:rgba(255,255,255,0.75); font-size:10px; margin-top:3px;">32 人参战 · 截止 23:59</div>
+      </div>
+
+      <!-- Post list (original style, just white bg) -->
+      <div style="background:#f5faf5; padding:8px;">
+
+        <!-- Post card 1 -->
+        <div style="background:#fff; border-radius:12px; margin-bottom:8px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.07);">
+          <div style="display:flex; align-items:center; padding:8px 10px; gap:8px;">
+            <div style="width:26px; height:26px; border-radius:50%; background:#e8f5e8; display:flex; align-items:center; justify-content:center; font-size:12px;">张</div>
+            <span style="font-size:11px; color:#333; font-weight:500;">张三</span>
+            <span class="tier-badge" style="background:#ff3b3b; margin-left:auto;">夯</span>
+          </div>
+          <div style="background:#e8f5e8; height:100px; display:flex; align-items:center; justify-content:center; color:#999; font-size:11px;">📸 图片</div>
+          <div style="padding:7px 10px; font-size:10px; color:#555;">"史诗级灾难PPT现场记录"</div>
+          <div style="padding:0 10px 8px; display:flex; gap:10px; font-size:10px; color:#888;">
+            <span>🔥 218</span><span>💀 12</span><span>💬 AI评价</span>
+          </div>
+        </div>
+
+        <!-- Post card 2 -->
+        <div style="background:#fff; border-radius:12px; margin-bottom:8px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.07);">
+          <div style="display:flex; align-items:center; padding:8px 10px; gap:8px;">
+            <div style="width:26px; height:26px; border-radius:50%; background:#e8f5e8; display:flex; align-items:center; justify-content:center; font-size:12px;">李</div>
+            <span style="font-size:11px; color:#333; font-weight:500;">李四</span>
+            <span class="tier-badge" style="background:#ff8c00; margin-left:auto;">顶级</span>
+          </div>
+          <div style="background:#e8f5e8; height:80px; display:flex; align-items:center; justify-content:center; color:#999; font-size:11px;">📸 图片</div>
+          <div style="padding:7px 10px; font-size:10px; color:#555;">"答辩时PPT突然消失..."</div>
+          <div style="padding:0 10px 8px; display:flex; gap:10px; font-size:10px; color:#888;">
+            <span>🔥 95</span><span>💀 3</span><span>💬 AI评价</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FAB -->
+      <div style="background:#f5faf5; padding:8px 10px; text-align:right; border-top:1px solid #eee;">
+        <span style="background:#1a7a1a; color:#fff; border-radius:20px; padding:7px 16px; font-size:11px; font-weight:bold;">🔥 参战</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PostDetail: keep original interactions -->
+  <div class="phone-wrap">
+    <div class="phone-label">帖子详情（原交互完全保留）</div>
+    <div class="phone-frame">
+      <div class="p-header">
+        <span class="p-back">‹</span>
+        <span>张三的答辩现场</span>
+        <span class="tier-badge" style="background:#ff3b3b; margin-left:auto;">夯</span>
+      </div>
+
+      <!-- Image area -->
+      <div style="background:#e8f5e8; height:160px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px;">
+        <span style="font-size:28px;">📸</span>
+        <span style="font-size:9px; color:#888;">双击图片快速投票（保留原有手势）</span>
+      </div>
+
+      <!-- AI comment - typewriter effect preserved -->
+      <div style="background:#fff; padding:10px 12px; border-bottom:1px solid #f0f0f0;">
+        <div style="font-size:9px; color:#1a7a1a; font-weight:bold; margin-bottom:4px;">🤖 AI 评委</div>
+        <div style="font-size:11px; color:#333; line-height:1.5;">"这是我见过最具艺术感的技术失误，堪称行为艺术..." <span style="border-right:2px solid #1a7a1a; animation:blink 1s infinite;"> </span></div>
+      </div>
+
+      <!-- Vote buttons - original style, color adapted -->
+      <div style="display:flex; gap:10px; padding:10px 12px; background:#fff; border-bottom:1px solid #f0f0f0;">
+        <div style="flex:1; background:#fff0f0; border:1.5px solid #ff3b3b; border-radius:12px; padding:10px; text-align:center; font-size:12px; font-weight:bold; color:#ff3b3b;">🔥 夯 &nbsp;218</div>
+        <div style="flex:1; background:#f8f8f8; border:1.5px solid #ddd; border-radius:12px; padding:10px; text-align:center; font-size:12px; font-weight:bold; color:#999;">💀 拉完了 &nbsp;12</div>
+      </div>
+
+      <!-- Particle effect note -->
+      <div style="background:#fffdf0; padding:8px 12px; font-size:9px; color:#b8860b; text-align:center; border-bottom:1px solid #f5f0d0;">
+        ⚡ 投"夯"→ 火焰粒子特效 &nbsp;|&nbsp; 投"拉完了"→ 下沉动画 （完全保留）
+      </div>
+
+      <!-- Share -->
+      <div style="background:#f5faf5; padding:8px 12px; display:flex; justify-content:flex-end;">
+        <span style="font-size:10px; color:#1a7a1a;">分享 ›</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px; text-align:center;">
+  主题页：帖子逐条列表（原操作模式），绿色顶部 Hero 区。<br>
+  帖子详情：双击投票、AI打字机效果、粒子特效 — 全部保留，只换背景色为白色系。<br><br>
+  确认这两页没问题，或告诉我要调整的地方。
+</p>

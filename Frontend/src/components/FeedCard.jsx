@@ -57,7 +57,7 @@ export default function FeedCard({ post: initialPost }) {
   }
 
   return (
-    <article className="bg-[#1a1a24] border-b border-white/[0.06]">
+    <article className="bg-white border-b border-black/[0.06]">
       {/* Header: avatar + username/date + tier badge */}
       <div className="flex items-start px-4 pt-4 pb-2">
         <button onClick={() => navigate(`/post/${post.id}`)}>
@@ -70,18 +70,18 @@ export default function FeedCard({ post: initialPost }) {
           />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[#f0f0f5] text-sm leading-tight">{post.author.username}</p>
-          <p className="text-xs text-[#4a4a5a] mt-0.5">{formatDate(post.created_at)}</p>
+          <p className="font-semibold text-[#1a1a1a] text-sm leading-tight">{post.author.username}</p>
+          <p className="text-xs text-[#888888] mt-0.5">{formatDate(post.created_at)}</p>
         </div>
         <div className="flex items-center space-x-2 ml-2 shrink-0">
           <TierBadge tier={post.tier} size="sm" />
-          <span className="text-[#4a4a5a] text-lg leading-none px-1">···</span>
+          <span className="text-[#888888] text-lg leading-none px-1">···</span>
         </div>
       </div>
 
       {/* Caption */}
       {post.caption && (
-        <p className="px-4 pb-3 text-sm text-[#e0e0ea] leading-relaxed">{post.caption}</p>
+        <p className="px-4 pb-3 text-sm text-[#1a1a1a] leading-relaxed">{post.caption}</p>
       )}
 
       {/* Multi-image carousel */}
@@ -120,15 +120,15 @@ export default function FeedCard({ post: initialPost }) {
 
       {/* AI 锐评 box */}
       {post.ai_comment && (
-        <div className="mx-4 mt-3 bg-[#1e1a2e] rounded-xl p-3 border-l-2 border-[#a855f7] relative">
+        <div className="mx-4 mt-3 bg-[#e8f5e8] rounded-xl p-3 border-l-2 border-[#1a7a1a] relative">
           <div className="absolute top-2 right-2">
             <TierBadge tier={post.tier} size="sm" />
           </div>
-          <p className="text-xs font-bold text-[#a855f7] mb-1 italic pr-16">🤖 AI 锐评</p>
-          <p className="text-sm text-[#8888a0] leading-relaxed italic pr-16 line-clamp-3">{post.ai_comment}</p>
+          <p className="text-xs font-bold text-[#1a7a1a] mb-1 italic pr-16">🤖 AI 锐评</p>
+          <p className="text-sm text-[#555555] leading-relaxed italic pr-16 line-clamp-3">{post.ai_comment}</p>
           <button
             onClick={() => navigate(`/post/${post.id}`)}
-            className="text-xs text-[#a855f7] mt-1.5 block"
+            className="text-xs text-[#1a7a1a] mt-1.5 block"
           >
             查看完整内容 &rsaquo;
           </button>
@@ -138,7 +138,7 @@ export default function FeedCard({ post: initialPost }) {
       {/* Theme tag */}
       {post.theme_title && (
         <div className="px-4 mt-2">
-          <span className="text-xs text-[#4a4a5a] bg-[#22222f] px-2 py-1 rounded-full">
+          <span className="text-xs text-[#555555] bg-[#e8f5e8] px-2 py-1 rounded-full">
             {post.theme_emoji} {post.theme_title}
           </span>
         </div>
@@ -160,8 +160,8 @@ export default function FeedCard({ post: initialPost }) {
         <button
           onClick={() => handleVote('la')}
           className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all
-            ${voting === 'la' ? 'scale-95 opacity-70' : 'hover:bg-[#2a2a38]'}
-            bg-[#22222f] text-[#4a4a5a]`}
+            ${voting === 'la' ? 'scale-95 opacity-70' : 'hover:bg-[#e8f5e8]'}
+            bg-[#e8f5e8] text-[#888888]`}
         >
           <span>💀</span>
           <span>拉完了</span>
@@ -172,14 +172,14 @@ export default function FeedCard({ post: initialPost }) {
 
         <button
           onClick={() => navigate(`/post/${post.id}`)}
-          className="flex items-center space-x-1 text-[#4a4a5a] px-2 py-2 hover:text-[#8888a0] transition-colors"
+          className="flex items-center space-x-1 text-[#888888] px-2 py-2 hover:text-[#555555] transition-colors"
         >
           <MessageCircle size={18} />
         </button>
 
         <button
           onClick={handleShare}
-          className="flex items-center space-x-1 text-[#4a4a5a] px-2 py-2 hover:text-[#8888a0] transition-colors"
+          className="flex items-center space-x-1 text-[#888888] px-2 py-2 hover:text-[#555555] transition-colors"
         >
           <Share2 size={18} />
         </button>

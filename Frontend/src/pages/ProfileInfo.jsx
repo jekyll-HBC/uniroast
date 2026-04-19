@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useAuth from '../store/useAuth'
 import api from '../api'
@@ -13,6 +13,28 @@ export default function ProfileInfo() {
     phone: user?.phone || '',
   })
   const [saving, setSaving] = useState(false)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const fileInputRef = useRef(null)
+
+  async function handleAvatarChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const { data } = await api.post('/upload/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      await api.patch('/auth/me', { avatar_url: data.image_url })
+      await fetchMe()
+    } catch {
+      alert('頭像上傳失敗，請重試')
+    } finally {
+      setAvatarUploading(false)
+      e.target.value = ''
+    }
+  }
 
   async function handleSave() {
     setSaving(true)
@@ -41,10 +63,28 @@ export default function ProfileInfo() {
       </div>
 
       <div className="bg-white mx-4 mt-4 rounded-xl p-4 flex flex-col items-center gap-2">
-        <img src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
-          className="w-16 h-16 rounded-full" alt=""
-          onError={e => { e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}` }} />
-        <span className="text-xs text-[#1a7a1a]">點擊更換頭像</span>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="hidden"
+          onChange={handleAvatarChange}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={avatarUploading}
+          className="relative disabled:opacity-60"
+        >
+          <img
+            src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}
+            className="w-16 h-16 rounded-full"
+            alt=""
+            onError={e => { e.target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}` }}
+          />
+        </button>
+        <span className="text-xs text-[#1a7a1a]">
+          {avatarUploading ? '上傳中…' : '點擊更換頭像'}
+        </span>
       </div>
 
       <p className="text-xs text-[#888] px-6 mt-4 mb-1">基本信息</p>
