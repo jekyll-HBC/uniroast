@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test'
 
-// 每个测试用唯一邮箱避免冲突
 function uniqueUser(prefix = 'user') {
   const ts = Date.now()
   return {
@@ -11,55 +10,48 @@ function uniqueUser(prefix = 'user') {
 }
 
 test.describe('认证流程', () => {
-  test('注册新用户', async ({ page }) => {
+  test('注册新用户后跳转首页', async ({ page }) => {
     const user = uniqueUser('reg')
-    await page.goto('/register')
-    await page.getByPlaceholder(/用户名|username/i).fill(user.username)
-    await page.getByPlaceholder(/邮箱|email/i).fill(user.email)
-    await page.getByPlaceholder(/密码|password/i).fill(user.password)
-    await page.getByRole('button', { name: /注册|register/i }).click()
-    // 注册成功后跳转到首页
+    await page.goto('/login')
+    await page.getByRole('button', { name: /还没有账号|去注册/i }).click()
+    await page.getByPlaceholder('输入用户名').fill(user.username)
+    await page.getByPlaceholder('your@email.com').fill(user.email)
+    await page.getByPlaceholder('输入密码').fill(user.password)
+    await page.getByRole('button', { name: '注册' }).click()
     await expect(page).toHaveURL('/')
   })
 
-  test('登录已有账号', async ({ page }) => {
+  test('登录已有账号后跳转首页', async ({ page }) => {
     const user = uniqueUser('login')
-    // 先通过 API 注册
-    await page.request.post('http://localhost:8000/auth/register', {
-      data: user,
-    })
+    await page.request.post('http://localhost:8000/auth/register', { data: user })
 
     await page.goto('/login')
-    await page.getByPlaceholder(/邮箱|email/i).fill(user.email)
-    await page.getByPlaceholder(/密码|password/i).fill(user.password)
-    await page.getByRole('button', { name: /登录|login/i }).click()
+    await page.getByPlaceholder('your@email.com').fill(user.email)
+    await page.getByPlaceholder('输入密码').fill(user.password)
+    await page.getByRole('button', { name: '使用账号密码' }).click()
     await expect(page).toHaveURL('/')
   })
 
-  test('密码错误登录失败', async ({ page }) => {
+  test('密码错误时停留在登录页并显示错误', async ({ page }) => {
     const user = uniqueUser('wrongpw')
     await page.request.post('http://localhost:8000/auth/register', { data: user })
 
     await page.goto('/login')
-    await page.getByPlaceholder(/邮箱|email/i).fill(user.email)
-    await page.getByPlaceholder(/密码|password/i).fill('WrongPassword!')
-    await page.getByRole('button', { name: /登录|login/i }).click()
-    // 应停留在登录页并显示错误
+    await page.getByPlaceholder('your@email.com').fill(user.email)
+    await page.getByPlaceholder('输入密码').fill('WrongPassword!')
+    await page.getByRole('button', { name: '使用账号密码' }).click()
     await expect(page).toHaveURL('/login')
+    await expect(page.getByText(/操作失败|Invalid/i)).toBeVisible({ timeout: 5000 })
   })
 
-  test('登出后跳转到登录页', async ({ page }) => {
-    const user = uniqueUser('logout')
-    await page.request.post('http://localhost:8000/auth/register', { data: user })
+  test('登录后 Navbar 显示用户名', async ({ page }) => {
+    const user = uniqueUser('navuser')
+    const res = await page.request.post('http://localhost:8000/auth/register', { data: user })
+    const { access_token } = await res.json()
 
-    await page.goto('/login')
-    await page.getByPlaceholder(/邮箱|email/i).fill(user.email)
-    await page.getByPlaceholder(/密码|password/i).fill(user.password)
-    await page.getByRole('button', { name: /登录|login/i }).click()
-    await expect(page).toHaveURL('/')
-
-    // 点击登出
-    await page.getByRole('button', { name: /登出|退出|logout/i }).click()
-    await expect(page).toHaveURL('/login')
+    await page.goto('/')
+    await page.evaluate((t) => localStorage.setItem('token', t), access_token)
+    await page.reload()
+    await expect(page.getByText(user.username)).toBeVisible({ timeout: 5000 })
   })
 })

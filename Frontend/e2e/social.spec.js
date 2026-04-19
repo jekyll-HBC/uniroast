@@ -9,12 +9,14 @@ function uniqueUser(prefix = 'user') {
   }
 }
 
-async function registerViaAPI(apiCtx, user) {
-  const r = await apiCtx.post('http://localhost:8000/auth/register', { data: user })
-  return (await r.json()).access_token
+async function setupUser(apiCtx, prefix) {
+  const user = uniqueUser(prefix)
+  const res = await apiCtx.post('http://localhost:8000/auth/register', { data: user })
+  const { access_token } = await res.json()
+  return { user, token: access_token }
 }
 
-async function loginInBrowser(page, token) {
+async function injectToken(page, token) {
   await page.goto('/')
   await page.evaluate((t) => localStorage.setItem('token', t), token)
   await page.reload()
@@ -23,65 +25,67 @@ async function loginInBrowser(page, token) {
 test.describe('社交功能', () => {
   test('搜索用户并显示结果', async ({ page }) => {
     const apiCtx = await request.newContext()
-    const alice = uniqueUser('alice')
-    const bob = uniqueUser('bob')
-    const aliceToken = await registerViaAPI(apiCtx, alice)
-    await registerViaAPI(apiCtx, bob)
+    const { token: aliceToken } = await setupUser(apiCtx, 'alice')
+    const { user: bob } = await setupUser(apiCtx, 'bob')
 
-    await loginInBrowser(page, aliceToken)
+    await injectToken(page, aliceToken)
     await page.goto('/friends')
 
-    await page.getByPlaceholder(/搜索|search/i).fill(bob.username)
+    await page.getByPlaceholder('搜索用戶名…').fill(bob.username)
+    await page.getByRole('button', { name: '搜索' }).click()
     await expect(page.getByText(bob.username)).toBeVisible({ timeout: 5000 })
     await apiCtx.dispose()
   })
 
-  test('关注用户后出现在关注列表', async ({ page }) => {
+  test('关注用户后按钮变为已關注', async ({ page }) => {
     const apiCtx = await request.newContext()
-    const alice = uniqueUser('alice')
-    const bob = uniqueUser('bob')
-    const aliceToken = await registerViaAPI(apiCtx, alice)
-    await registerViaAPI(apiCtx, bob)
+    const { token: aliceToken } = await setupUser(apiCtx, 'alice')
+    const { user: bob } = await setupUser(apiCtx, 'bob')
 
-    await loginInBrowser(page, aliceToken)
+    await injectToken(page, aliceToken)
     await page.goto('/friends')
 
-    await page.getByPlaceholder(/搜索|search/i).fill(bob.username)
-    await page.getByText(bob.username).waitFor()
-    await page.getByRole('button', { name: /关注|follow/i }).first().click()
+    await page.getByPlaceholder('搜索用戶名…').fill(bob.username)
+    await page.getByRole('button', { name: '搜索' }).click()
+    // 等搜索結果 tab 出现，确保结果已加载
+    await page.getByRole('button', { name: '搜索結果' }).waitFor({ timeout: 5000 })
 
-    // 关注按钮状态变化（已关注 / unfollow）
-    await expect(
-      page.getByRole('button', { name: /已关注|取关|unfollow/i }).first()
-    ).toBeVisible({ timeout: 5000 })
+    // 关注按钮（繁体，exact 避免匹配 tab 上的"關注 0"）
+    await page.getByRole('button', { name: '關注', exact: true }).click()
+    await expect(page.getByRole('button', { name: '已關注', exact: true })).toBeVisible({ timeout: 5000 })
     await apiCtx.dispose()
   })
 
-  test('取关后从关注列表移除', async ({ page }) => {
+  test('取关后按钮恢复为關注', async ({ page }) => {
     const apiCtx = await request.newContext()
-    const alice = uniqueUser('alice')
-    const bob = uniqueUser('bob')
-    const aliceToken = await registerViaAPI(apiCtx, alice)
-    const bobRes = await apiCtx.post('http://localhost:8000/auth/register', { data: bob })
-    const bobId = (await apiCtx.get('http://localhost:8000/auth/me', {
-      headers: { Authorization: `Bearer ${(await bobRes.json()).access_token}` },
-    })).json().then(d => d.id)
+    const { user: alice, token: aliceToken } = await setupUser(apiCtx, 'alice')
+    const { user: bob } = await setupUser(apiCtx, 'bob')
 
-    // 先通过 API 关注
-    await apiCtx.post(`http://localhost:8000/users/${await bobId}/follow`, {
+    // 先通过 API 获取 bob 的 id 再关注
+    const meRes = await apiCtx.get('http://localhost:8000/auth/me', {
+      headers: { Authorization: `Bearer ${aliceToken}` },
+    })
+    const aliceId = (await meRes.json()).id
+
+    // 搜索获取 bob id
+    const searchRes = await apiCtx.get(`http://localhost:8000/users/search?q=${bob.username}`, {
+      headers: { Authorization: `Bearer ${aliceToken}` },
+    })
+    const bobId = (await searchRes.json())[0].id
+
+    await apiCtx.post(`http://localhost:8000/users/${bobId}/follow`, {
       headers: { Authorization: `Bearer ${aliceToken}` },
     })
 
-    await loginInBrowser(page, aliceToken)
+    await injectToken(page, aliceToken)
     await page.goto('/friends')
 
-    await page.getByPlaceholder(/搜索|search/i).fill(bob.username)
-    await page.getByText(bob.username).waitFor()
-    await page.getByRole('button', { name: /已关注|取关|unfollow/i }).first().click()
+    await page.getByPlaceholder('搜索用戶名…').fill(bob.username)
+    await page.getByRole('button', { name: '搜索' }).click()
+    await page.getByRole('button', { name: '搜索結果' }).waitFor({ timeout: 5000 })
 
-    await expect(
-      page.getByRole('button', { name: /^关注$|^follow$/i }).first()
-    ).toBeVisible({ timeout: 5000 })
+    await page.getByRole('button', { name: '已關注', exact: true }).first().click()
+    await expect(page.getByRole('button', { name: '關注', exact: true })).toBeVisible({ timeout: 5000 })
     await apiCtx.dispose()
   })
 })

@@ -15,10 +15,17 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'cd ../Backend && DATABASE_URL=sqlite:///./e2e_test.db SECRET_KEY=e2e-secret OPENAI_API_KEY=sk-test uvicorn main:app --port 8000',
+      command: 'uvicorn main:app --port 8000',
+      cwd: '../Backend',
       port: 8000,
       reuseExistingServer: !process.env.CI,
       timeout: 30000,
+      env: {
+        DATABASE_URL: 'sqlite:///./e2e_test.db',
+        SECRET_KEY: 'e2e-secret',
+        OPENAI_API_KEY: 'sk-test',
+        PYTHONPATH: '.',
+      },
     },
     {
       command: 'npm run dev',
