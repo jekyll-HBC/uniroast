@@ -307,3 +307,226 @@ def test_unfollow_not_following(client):
     bob_id = client.get("/auth/me", headers=_bob_header(client)).json()["id"]
     r = client.delete(f"/users/{bob_id}/follow", headers=auth_header(client))
     assert r.status_code == 404
+
+
+# ── auth: update_me & activity ────────────────────────────────────────────────
+
+def test_update_me(client):
+    register(client)
+    headers = auth_header(client)
+    r = client.patch("/auth/me", json={"bio": "hello world"}, headers=headers)
+    assert r.status_code == 200
+    assert r.json()["bio"] == "hello world"
+
+
+def test_update_me_username(client):
+    register(client)
+    headers = auth_header(client)
+    r = client.patch("/auth/me", json={"username": "alice2"}, headers=headers)
+    assert r.status_code == 200
+    assert r.json()["username"] == "alice2"
+
+
+def test_update_me_unauthenticated(client):
+    r = client.patch("/auth/me", json={"bio": "x"})
+    assert r.status_code == 401
+
+
+def test_my_activity_empty(client):
+    register(client)
+    r = client.get("/auth/me/activity", headers=auth_header(client))
+    assert r.status_code == 200
+    assert r.json() == []
+
+
+def test_my_activity_after_vote(client):
+    register(client)
+    headers = auth_header(client)
+    theme_id = _create_theme(client, headers)
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="")):
+        post_id = client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/1.jpg"}, headers=headers).json()["id"]
+    # vote on own post to trigger activity
+    client.post(f"/posts/{post_id}/vote", json={"vote_type": "heng"}, headers=headers)
+    r = client.get("/auth/me/activity", headers=headers)
+    assert r.status_code == 200
+    assert len(r.json()) == 1
+    assert r.json()[0]["post_id"] == post_id
+
+
+# ── posts: get single, list filters, la vote, streak ─────────────────────────
+
+def test_get_post(client):
+    register(client)
+    headers = auth_header(client)
+    theme_id = _create_theme(client, headers)
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="roast")):
+        post_id = client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/1.jpg"}, headers=headers).json()["id"]
+    r = client.get(f"/posts/{post_id}")
+    assert r.status_code == 200
+    assert r.json()["id"] == post_id
+
+
+def test_get_post_not_found(client):
+    r = client.get("/posts/9999")
+    assert r.status_code == 404
+
+
+def test_list_posts_filter_by_user(client):
+    register(client)
+    headers = auth_header(client)
+    user_id = client.get("/auth/me", headers=headers).json()["id"]
+    theme_id = _create_theme(client, headers)
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="")):
+        client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/1.jpg"}, headers=headers)
+    r = client.get(f"/posts/?user_id={user_id}")
+    assert r.status_code == 200
+    assert len(r.json()) == 1
+
+
+def test_list_posts_filter_by_theme(client):
+    register(client)
+    headers = auth_header(client)
+    theme_id = _create_theme(client, headers)
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="")):
+        client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/1.jpg"}, headers=headers)
+    r = client.get(f"/posts/?theme_id={theme_id}")
+    assert r.status_code == 200
+    assert all(p["theme_id"] == theme_id for p in r.json())
+
+
+def test_vote_la(client):
+    register(client)
+    headers = auth_header(client)
+    theme_id = _create_theme(client, headers)
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="")):
+        post_id = client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/1.jpg"}, headers=headers).json()["id"]
+    r = client.post(f"/posts/{post_id}/vote", json={"vote_type": "la"}, headers=headers)
+    assert r.status_code == 200
+    assert r.json()["vote_count"] == 1
+    assert r.json()["heng_count"] == 0
+    assert r.json()["la_count"] == 1
+
+
+def test_vote_nonexistent_post(client):
+    register(client)
+    r = client.post("/posts/9999/vote", json={"vote_type": "heng"}, headers=auth_header(client))
+    assert r.status_code == 404
+
+
+def test_streak_increments_on_consecutive_posts(client):
+    register(client)
+    headers = auth_header(client)
+    theme_id = _create_theme(client, headers)
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="")):
+        client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/1.jpg"}, headers=headers)
+    me = client.get("/auth/me", headers=headers).json()
+    assert me["streak"] >= 1
+
+
+# ── schemas: score_to_tier ────────────────────────────────────────────────────
+
+def test_score_to_tier():
+    from schemas import score_to_tier
+    assert score_to_tier(0.0, 0) == "未评级"
+    assert score_to_tier(1.0, 3) == "夯"       # 3/3 = 100%
+    assert score_to_tier(0.75, 4) == "顶级"    # 3/4 = 75%
+    assert score_to_tier(0.5, 4) == "人上人"   # 2/4 = 50%
+    assert score_to_tier(0.25, 4) == "NPC"     # 1/4 = 25%
+    assert score_to_tier(0.0, 4) == "拉完了"   # 0/4 = 0%
+
+
+# ── themes: list today filter, theme posts ────────────────────────────────────
+
+def test_list_themes_today_filter(client):
+    register(client)
+    headers = auth_header(client)
+    from datetime import date
+    today = date.today().isoformat()
+    client.post("/themes/", json={"title": "Today Theme", "emoji": "📅", "active_date": today}, headers=headers)
+    client.post("/themes/", json={"title": "Other Theme", "emoji": "🔥"}, headers=headers)
+    r = client.get("/themes/?today=true")
+    assert r.status_code == 200
+    titles = [t["title"] for t in r.json()]
+    assert "Today Theme" in titles
+    assert "Other Theme" not in titles
+
+
+def test_theme_posts(client):
+    register(client)
+    headers = auth_header(client)
+    theme_id = _create_theme(client, headers)
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="")):
+        client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/1.jpg"}, headers=headers)
+    r = client.get(f"/themes/{theme_id}/posts")
+    assert r.status_code == 200
+    assert len(r.json()) == 1
+    assert r.json()[0]["theme_id"] == theme_id
+
+
+def test_theme_posts_not_found(client):
+    r = client.get("/themes/9999/posts")
+    assert r.status_code == 404
+
+
+# ── seasons ───────────────────────────────────────────────────────────────────
+
+def test_current_season(client):
+    r = client.get("/seasons/current")
+    assert r.status_code == 200
+    data = r.json()
+    assert "id" in data
+    assert "number" in data
+    assert data["is_active"] is True
+
+
+def test_current_season_idempotent(client):
+    """Calling /seasons/current twice returns the same season"""
+    r1 = client.get("/seasons/current")
+    r2 = client.get("/seasons/current")
+    assert r1.json()["id"] == r2.json()["id"]
+
+
+def test_current_leaderboard_empty(client):
+    r = client.get("/seasons/current/leaderboard")
+    assert r.status_code == 200
+    assert r.json() == []
+
+
+def test_current_leaderboard_with_voted_post(client):
+    register(client)
+    headers = auth_header(client)
+    theme_id = _create_theme(client, headers)
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="")):
+        post_id = client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/1.jpg"}, headers=headers).json()["id"]
+    client.post(f"/posts/{post_id}/vote", json={"vote_type": "heng"}, headers=headers)
+    r = client.get("/seasons/current/leaderboard")
+    assert r.status_code == 200
+    assert len(r.json()) == 1
+    assert r.json()[0]["rank"] == 1
+
+
+def test_season_history(client):
+    client.get("/seasons/current")  # ensure at least one season exists
+    r = client.get("/seasons/history")
+    assert r.status_code == 200
+    assert len(r.json()) >= 1
+
+
+# ── feed ──────────────────────────────────────────────────────────────────────
+
+def test_feed_empty(client):
+    r = client.get("/posts/feed")
+    assert r.status_code == 200
+    assert r.json() == []
+
+
+def test_feed_returns_posts(client):
+    register(client)
+    headers = auth_header(client)
+    theme_id = _create_theme(client, headers)
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="")):
+        client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/1.jpg"}, headers=headers)
+    r = client.get("/posts/feed")
+    assert r.status_code == 200
+    assert len(r.json()) == 1
+    assert "theme_title" in r.json()[0]
