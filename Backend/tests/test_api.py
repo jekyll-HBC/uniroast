@@ -223,3 +223,87 @@ def test_full_user_journey(client):
     leaderboard = client.get("/posts/")
     posts = leaderboard.json()
     assert any(p["id"] == post_id for p in posts)
+
+
+# ── users / follow ────────────────────────────────────────────────────────────
+
+def _register_bob(client):
+    return client.post("/auth/register", json={
+        "username": "bob", "email": "bob@test.com", "password": "TestPass123!"
+    })
+
+def _bob_header(client):
+    r = client.post("/auth/login", json={"email": "bob@test.com", "password": "TestPass123!"})
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
+def test_search_users(client):
+    register(client)
+    _register_bob(client)
+    r = client.get("/users/search?q=bob", headers=auth_header(client))
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data) == 1
+    assert data[0]["username"] == "bob"
+    assert data[0]["is_following"] is False
+
+
+def test_search_excludes_self(client):
+    register(client)
+    r = client.get("/users/search?q=alice", headers=auth_header(client))
+    assert r.status_code == 200
+    assert len(r.json()) == 0
+
+
+def test_follow_and_unfollow(client):
+    register(client)
+    bob_r = _register_bob(client)
+    bob_id = client.get("/auth/me", headers=_bob_header(client)).json()["id"]
+
+    # follow
+    r = client.post(f"/users/{bob_id}/follow", headers=auth_header(client))
+    assert r.status_code == 204
+
+    # following list
+    alice_id = client.get("/auth/me", headers=auth_header(client)).json()["id"]
+    r = client.get(f"/users/{alice_id}/following", headers=auth_header(client))
+    assert any(u["id"] == bob_id for u in r.json())
+
+    # followers list
+    r = client.get(f"/users/{bob_id}/followers", headers=auth_header(client))
+    assert any(u["id"] == alice_id for u in r.json())
+
+    # is_following flag in search
+    r = client.get("/users/search?q=bob", headers=auth_header(client))
+    assert r.json()[0]["is_following"] is True
+
+    # unfollow
+    r = client.delete(f"/users/{bob_id}/follow", headers=auth_header(client))
+    assert r.status_code == 204
+
+    r = client.get(f"/users/{alice_id}/following", headers=auth_header(client))
+    assert len(r.json()) == 0
+
+
+def test_follow_duplicate(client):
+    register(client)
+    _register_bob(client)
+    bob_id = client.get("/auth/me", headers=_bob_header(client)).json()["id"]
+    client.post(f"/users/{bob_id}/follow", headers=auth_header(client))
+    r = client.post(f"/users/{bob_id}/follow", headers=auth_header(client))
+    assert r.status_code == 400
+
+
+def test_follow_self(client):
+    register(client)
+    alice_id = client.get("/auth/me", headers=auth_header(client)).json()["id"]
+    r = client.post(f"/users/{alice_id}/follow", headers=auth_header(client))
+    assert r.status_code == 400
+
+
+def test_unfollow_not_following(client):
+    register(client)
+    _register_bob(client)
+    bob_id = client.get("/auth/me", headers=_bob_header(client)).json()["id"]
+    r = client.delete(f"/users/{bob_id}/follow", headers=auth_header(client))
+    assert r.status_code == 404
