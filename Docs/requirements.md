@@ -40,6 +40,15 @@
 |----|-------------|
 | FR-18 | Authenticated users can view their own profile page |
 | FR-19 | The profile page lists all posts submitted by the user, with scores and tiers |
+| FR-20 | Authenticated users can replace their avatar by selecting a local image file (JPEG, PNG, WebP, GIF; max 10 MB); the image is uploaded to Cloudinary and the profile is updated immediately |
+
+### 1.6 Friends \& Social
+| ID | Requirement |
+|----|-------------|
+| FR-21 | Authenticated users can search for other users by username |
+| FR-22 | Authenticated users can follow and unfollow other users |
+| FR-23 | The friends page displays the following list and followers list |
+| FR-24 | The profile page displays accurate following and follower counts |
 
 ---
 
