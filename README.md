@@ -43,7 +43,7 @@ UniRoast is a gamified social platform designed specifically for university stud
 | Frontend | React 19 + Vite + Tailwind CSS + Zustand |
 | Backend | FastAPI + SQLAlchemy + Alembic |
 | Database | PostgreSQL (prod) / SQLite (test) |
-| AI | DeepSeek API (OpenAI-compatible) |
+| AI | ByteDance Doubao API |
 | Storage | Cloudinary |
 | CI/CD | GitHub Actions |
 
