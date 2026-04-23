@@ -91,6 +91,34 @@ type: feat | fix | docs | test | refactor | chore | ci
 
 ---
 
+## 前端部署规范
+
+前端部署在 **Cloudflare Pages**，地址：https://weroast.pages.dev
+
+### 每次更新部署的流程
+
+```bash
+cd /Users/mac/Desktop/Uniroast/Frontend
+git pull
+npm run build
+npx wrangler pages deploy dist --project-name weroast
+```
+
+> 只有有 Cloudflare 账号权限的人（目前是 jekyll-HBC）才能执行部署。
+> 组员 push 代码后通知他执行上述命令。
+
+### 本地开发环境配置
+
+每个组员需要在 `Frontend/` 目录下创建 `.env.local` 文件（不会被 git 同步）：
+
+```
+VITE_API_URL=http://localhost:8000
+```
+
+后端地址：`https://course-project-ex1-team-13-production.up.railway.app`（Railway，已自动部署）
+
+---
+
 ## 当前待办（按优先级）
 
 1. **#24** — 集成测试（注册→登录→发帖完整流程）⚠️ 硬性要求
