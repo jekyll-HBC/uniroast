@@ -530,3 +530,102 @@ def test_feed_returns_posts(client):
     assert r.status_code == 200
     assert len(r.json()) == 1
     assert "theme_title" in r.json()[0]
+
+
+# ── streak consecutive day branch (posts.py:70-71) ────────────────────────────
+
+def test_streak_increments_on_second_consecutive_day(client):
+    """Second post on a different day increments streak via the elif branch"""
+    import datetime
+    register(client)
+    headers = auth_header(client)
+    theme_id = _create_theme(client, headers)
+
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="")):
+        client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/1.jpg"}, headers=headers)
+
+    from database import get_db as _get_db
+    from tests.conftest import _TestingSession
+    db = _TestingSession()
+    from main import app as _app
+    import models as _models
+    me = client.get("/auth/me", headers=headers).json()
+    user = db.query(_models.User).filter_by(id=me["id"]).first()
+    user.last_post_date = yesterday
+    user.streak = 1
+    db.commit()
+    db.close()
+
+    with patch("routers.posts.generate_roast", new=AsyncMock(return_value="")):
+        r = client.post("/posts/", json={"theme_id": theme_id, "image_url": "http://img.test/2.jpg"}, headers=headers)
+    assert r.status_code == 201
+    me2 = client.get("/auth/me", headers=headers).json()
+    assert me2["streak"] == 2
+
+
+# ── seasons/{id}/leaderboard (seasons.py:64-71) ───────────────────────────────
+
+def test_season_leaderboard_by_id(client):
+    """GET /seasons/{id}/leaderboard returns empty list for fresh season (no snapshots)"""
+    season = client.get("/seasons/current").json()
+    r = client.get(f"/seasons/{season['id']}/leaderboard")
+    assert r.status_code == 200
+    assert isinstance(r.json(), list)
+
+
+# ── users following list + is_following flag (users.py:30, 52) ───────────────
+
+def test_get_following_list(client):
+    """GET /users/{id}/following returns list of users being followed"""
+    register(client)
+    headers = auth_header(client)
+
+    client.post("/auth/register", json={"username": "bob2", "email": "bob2@test.com", "password": "TestPass123!"})
+    r2 = client.post("/auth/login", json={"email": "bob2@test.com", "password": "TestPass123!"})
+    bob_id = client.get("/auth/me", headers={"Authorization": f"Bearer {r2.json()['access_token']}"}).json()["id"]
+
+    client.post(f"/users/{bob_id}/follow", headers=headers)
+
+    me = client.get("/auth/me", headers=headers).json()
+    r = client.get(f"/users/{me['id']}/following", headers=headers)
+    assert r.status_code == 200
+    ids = [u["id"] for u in r.json()]
+    assert bob_id in ids
+
+
+def test_get_followers_list(client):
+    """GET /users/{id}/followers returns list of users who follow me"""
+    register(client)
+    headers = auth_header(client)
+
+    client.post("/auth/register", json={"username": "carol", "email": "carol@test.com", "password": "TestPass123!"})
+    r3 = client.post("/auth/login", json={"email": "carol@test.com", "password": "TestPass123!"})
+    carol_headers = {"Authorization": f"Bearer {r3.json()['access_token']}"}
+    carol_id = client.get("/auth/me", headers=carol_headers).json()["id"]
+
+    me = client.get("/auth/me", headers=headers).json()
+    client.post(f"/users/{me['id']}/follow", headers=carol_headers)
+
+    r = client.get(f"/users/{me['id']}/followers", headers=headers)
+    assert r.status_code == 200
+    ids = [u["id"] for u in r.json()]
+    assert carol_id in ids
+
+
+def test_search_shows_is_following_true(client):
+    """GET /users/search returns is_following=True for followed users"""
+    register(client)
+    headers = auth_header(client)
+
+    client.post("/auth/register", json={"username": "uniquefollowable", "email": "uf@test.com", "password": "TestPass123!"})
+    r2 = client.post("/auth/login", json={"email": "uf@test.com", "password": "TestPass123!"})
+    uf_id = client.get("/auth/me", headers={"Authorization": f"Bearer {r2.json()['access_token']}"}).json()["id"]
+
+    client.post(f"/users/{uf_id}/follow", headers=headers)
+
+    r = client.get("/users/search?q=uniquefollowable", headers=headers)
+    assert r.status_code == 200
+    assert len(r.json()) == 1
+    assert r.json()[0]["is_following"] is True
