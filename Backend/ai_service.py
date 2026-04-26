@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openai import AsyncOpenAI
 import os
 
 def _get_client():
@@ -6,7 +6,7 @@ def _get_client():
     print(f"[ai_service] ARK_API_KEY={'set' if api_key else 'MISSING'}")
     if not api_key:
         return None
-    return OpenAI(api_key=api_key, base_url="https://ark.cn-beijing.volces.com/api/v3")
+    return AsyncOpenAI(api_key=api_key, base_url="https://ark.cn-beijing.volces.com/api/v3")
 
 SYSTEM_PROMPT = """你是UniRoast的AI评委，专门对大学生上传的主题照片进行幽默吐槽。
 风格要求：
@@ -33,7 +33,7 @@ async def generate_roast(theme: str, caption: str | None, image_url: str | None 
         user_content = text
 
     try:
-        response = client.chat.completions.create(
+        response = await client.chat.completions.create(
             model="ep-20260331095026-8hj4r",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
