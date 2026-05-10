@@ -9,7 +9,7 @@
 | 贺柏诚 | 1230003810 | jekyll-HBC | Full-stack, AI integration, DevOps |
 | 祝天皓 | 1230002239 | kirei886 | Frontend, UI components |
 | 魏嘉琦 | 1230017330 | holiday739 | Frontend |
-| 范云杰 | 1230003103 | — | — |
+| 范云杰 | 1230003103 | Fancyyyyy0531 | — |
 
 **Live demo:** https://weroast.pages.dev  
 **Backend API:** https://course-project-ex1-team-13-production.up.railway.app  
@@ -38,7 +38,7 @@ UniRoast is a gamified social platform for university students. Each day feature
 | Frontend | React 19 + Vite + Tailwind CSS + Zustand |
 | Backend | FastAPI + SQLAlchemy + Alembic |
 | Database | PostgreSQL (production) / SQLite (testing) |
-| AI | DeepSeek API (via OpenAI-compatible client) |
+| AI | ByteDance Doubao API (via OpenAI-compatible client) |
 | Storage | Cloudinary |
 | CI/CD | GitHub Actions → Railway (backend) + Cloudflare Pages (frontend) |
 
@@ -258,7 +258,7 @@ Types: `feat` | `fix` | `docs` | `test` | `refactor` | `chore` | `ci`
 
 ## External Services
 
-- [DeepSeek API](https://platform.deepseek.com/) — AI roast generation
+- [ByteDance Doubao API](https://www.volcengine.com/product/doubao) — AI roast generation
 - [Cloudinary](https://cloudinary.com/) — image storage and CDN
 - [Railway](https://railway.app/) — backend hosting
 - [Cloudflare Pages](https://pages.cloudflare.com/) — frontend hosting
