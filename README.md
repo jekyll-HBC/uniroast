@@ -1,139 +1,264 @@
-# 🔥 UniRoast - University Hall of Fame
+# UniRoast — University Hall of Fame
 
 > AI-powered campus social platform where students compete in daily themed challenges
 
-## 📋 Team Information
+**Course:** BSAI301 | **Section:** EX1 | **Team:** 13
 
-**Team Name:** [Group 13]
+| Name | Student ID | GitHub | Role |
+|------|-----------|--------|------|
+| 贺柏诚 | 1230003810 | jekyll-HBC | Full-stack, AI integration, DevOps |
+| 祝天皓 | 1230002239 | kirei886 | Frontend, UI components |
+| 魏嘉琦 | 1230017330 | holiday739 | Frontend |
+| 范云杰 | 1230003103 | — | — |
 
-**Section:** [EX1]
-
-**Team Members:**
-- [贺柏诚] - [1230003810] - [jekyll-HBC] - Role: [前端/后端/全栈]
-- [范云杰] - [学号] - [GitHub用户名] - Role: [前端/后端/全栈]
-- [祝天皓] - [1230002239] - [kirei886] - Role: [前端/后端/全栈]
-- [魏嘉琦] - [1230017330] - [holiday739] - Role: [前端/后端/全栈]
-
-**Project Repository:** https://github.com/BSAI301/course-project-ex1-team-13 
-
----
-
-## 🎯 Project Overview
-
-UniRoast is a gamified social platform designed specifically for university students. Each day features a themed challenge where students upload photos to compete for rankings. An AI system provides humorous roasts, and the community votes to determine daily winners.
-
-### Key Features
-- **Daily Themed Challenges**: Fresh topics every day (e.g., "Worst Cafeteria Meal", "Messiest Dorm Room")
-- **AI-Powered Roasts**: GPT-4 generates witty, personalized comments on submissions
-- **Real-time Battle Rankings**: Live leaderboard with voting system
-- **Hall of Fame**: Showcase top performers and legendary moments
-- **Social Interaction**: Like, comment, and share campus moments
-
-### Target Users
-- University students aged 18-25
-- Looking for fun, lighthearted social interaction
-- Interested in campus community building
+**Live demo:** https://weroast.pages.dev  
+**Backend API:** https://course-project-ex1-team-13-production.up.railway.app  
+**Repository:** https://github.com/BSAI301/course-project-ex1-team-13
 
 ---
 
-## 🛠 Tech Stack
+## Project Overview
+
+UniRoast is a gamified social platform for university students. Each day features a themed challenge where students upload photos to compete for rankings. An AI system generates humorous roasts, and the community votes to determine daily winners.
+
+**Core features:**
+- Daily themed challenges (e.g., "Worst Cafeteria Meal", "Messiest Dorm Room")
+- AI-generated roasts powered by DeepSeek / ByteDance Doubao API
+- Binary voting system (Hot / Not) with real-time leaderboard
+- Hall of Fame showcasing top performers
+- User profiles with streaks, seasons, and follow system
+- Image uploads via Cloudinary
+
+---
+
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 19 + Vite + Tailwind CSS + Zustand |
 | Backend | FastAPI + SQLAlchemy + Alembic |
-| Database | PostgreSQL (prod) / SQLite (test) |
-| AI | ByteDance Doubao API |
+| Database | PostgreSQL (production) / SQLite (testing) |
+| AI | DeepSeek API (via OpenAI-compatible client) |
 | Storage | Cloudinary |
-| CI/CD | GitHub Actions |
+| CI/CD | GitHub Actions → Railway (backend) + Cloudflare Pages (frontend) |
 
 ---
 
-## 🚀 Quick Start
+## Prerequisites
 
-### Backend
+- Python 3.11+
+- Node.js 20+
+- npm 10+
+- PostgreSQL 15+ (for production; SQLite is used automatically in tests)
+
+---
+
+## Setup & Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/BSAI301/course-project-ex1-team-13.git
+cd course-project-ex1-team-13
+```
+
+### 2. Backend setup
+
 ```bash
 cd Backend
-python -m venv venv && source venv/bin/activate
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate        # macOS / Linux
+# venv\Scripts\activate         # Windows
+
+# Install dependencies
 pip install -r requirements.txt
-cp .env.example .env   # fill in DATABASE_URL, SECRET_KEY, OPENAI_API_KEY, CLOUDINARY_*
+```
+
+### 3. Backend configuration
+
+Copy the example environment file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/uniroast
+SECRET_KEY=your-secret-key-here          # any long random string
+DEEPSEEK_API_KEY=your-deepseek-api-key   # from platform.deepseek.com
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-cloudinary-key
+CLOUDINARY_API_SECRET=your-cloudinary-secret
+```
+
+### 4. Database migration
+
+```bash
+# Inside Backend/ with venv activated
+alembic upgrade head
+```
+
+Optionally seed initial theme data:
+
+```bash
+python seed_themes.py
+```
+
+### 5. Frontend setup
+
+```bash
+cd ../Frontend
+npm install
+```
+
+### 6. Frontend configuration
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+---
+
+## Running the Application
+
+### Start the backend
+
+```bash
+cd Backend
+source venv/bin/activate
 uvicorn main:app --reload
 ```
 
-### Frontend
+API available at `http://localhost:8000`  
+Interactive docs at `http://localhost:8000/docs`
+
+### Start the frontend
+
 ```bash
 cd Frontend
-npm install
 npm run dev
 ```
 
-### Run Tests
+Frontend available at `http://localhost:5173`
+
+---
+
+## Testing
+
+### Backend tests
+
+Tests use SQLite in-memory — no PostgreSQL required.
+
 ```bash
-# Backend (with coverage)
 cd Backend
+source venv/bin/activate
+
+# Run all tests
 pytest
 
-# Frontend (with coverage)
+# Run with coverage report
+pytest --cov=. --cov-report=term-missing
+```
+
+Current backend coverage: **92%**
+
+### Frontend unit tests
+
+```bash
 cd Frontend
-npm run test:coverage
+npm run test           # run once
+npm run test:coverage  # with coverage report
+```
+
+### End-to-end tests (Playwright)
+
+Requires both backend and frontend running locally.
+
+```bash
+# Terminal 1 — start backend
+cd Backend && uvicorn main:app --reload
+
+# Terminal 2 — run E2E tests
+cd Frontend
+npx playwright install --with-deps chromium   # first time only
+npm run test:e2e
 ```
 
 ---
 
-## 🌿 Git Workflow
+## CI/CD Pipeline
 
-### Branch Strategy
-| Branch | Purpose |
-|--------|---------|
-| `main` | Production — merged from `develop` via PR only |
-| `develop` | Integration — all feature branches merge here |
-| `feature/<module>-<desc>` | New features, e.g. `feature/auth-jwt-login` |
-| `fix/<desc>` | Bug fixes, e.g. `fix/upload-size-validation` |
-| `docs/<topic>` | Documentation updates |
-| `test/<scope>` | Test additions |
+GitHub Actions runs on every push and pull request:
 
-### Development Flow
-1. Open a GitHub Issue describing the task, assign to a Milestone
-2. Create a branch from `develop`: `git checkout -b feature/your-feature`
-3. Write code + tests together
-4. Push and open a PR — include `Closes #<issue>` in the description
-5. CI must pass before merging
-6. Merge to `develop`, close the issue
-
-### Commit Message Format
-```
-<type>(<scope>): <short description>
-
-Types: feat | fix | docs | test | refactor | chore | ci
-```
+| Job | Trigger | What it does |
+|-----|---------|-------------|
+| Backend Tests | all branches | pytest with SQLite, coverage |
+| Frontend Tests | all branches | vitest + build check |
+| E2E Tests | all branches | Playwright against local stack |
+| Deploy | push to `main` | Railway (backend) + Cloudflare Pages (frontend) |
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-Uniroast/
-├── Backend/          # FastAPI application
-│   ├── routers/      # API route handlers
-│   ├── tests/        # pytest integration & unit tests
-│   ├── models.py     # SQLAlchemy ORM models
-│   ├── schemas.py    # Pydantic schemas
-│   └── ai_service.py # DeepSeek AI roast generation
-├── Frontend/         # React + Vite application
+course-project-ex1-team-13/
+├── Backend/
+│   ├── routers/          # API route handlers (auth, posts, votes, users, ai)
+│   ├── tests/            # pytest integration & unit tests
+│   ├── migrations/       # Alembic database migrations
+│   ├── main.py           # FastAPI app entry point
+│   ├── models.py         # SQLAlchemy ORM models
+│   ├── schemas.py        # Pydantic request/response schemas
+│   ├── auth.py           # JWT authentication
+│   ├── ai_service.py     # DeepSeek AI roast generation
+│   ├── upload_service.py # Cloudinary image upload
+│   ├── database.py       # DB session management
+│   └── requirements.txt
+├── Frontend/
 │   └── src/
-│       ├── pages/    # Route-level components
-│       ├── store/    # Zustand auth store
-│       └── api.js    # Axios instance
+│       ├── pages/        # Route-level components
+│       ├── components/   # Reusable UI components
+│       ├── store/        # Zustand auth store
+│       └── api.js        # Axios instance with interceptors
 ├── Docs/
 │   ├── requirements.md   # Functional & non-functional requirements
-│   └── architecture.md   # System architecture & tech decisions
-└── .github/workflows/ci.yml  # CI pipeline
+│   └── architecture.md   # System architecture & design decisions
+└── .github/
+    └── workflows/
+        └── ci.yml        # CI/CD pipeline definition
 ```
 
 ---
 
-## 📄 External References
+## Git Workflow
 
-- AI roast generation powered by [DeepSeek API](https://platform.deepseek.com/)
-- Image hosting via [Cloudinary](https://cloudinary.com/)
-- UI icons from [Lucide React](https://lucide.dev/)
+| Branch | Purpose |
+|--------|---------|
+| `main` | Production — merged via PR only |
+| `develop` | Integration — all feature branches merge here |
+| `feature/<module>-<desc>` | New features |
+| `fix/<desc>` | Bug fixes |
+| `test/<scope>` | Test additions |
+
+**Commit format:** `<type>(<scope>): <description>`  
+Types: `feat` | `fix` | `docs` | `test` | `refactor` | `chore` | `ci`
+
+---
+
+## External Services
+
+- [DeepSeek API](https://platform.deepseek.com/) — AI roast generation
+- [Cloudinary](https://cloudinary.com/) — image storage and CDN
+- [Railway](https://railway.app/) — backend hosting
+- [Cloudflare Pages](https://pages.cloudflare.com/) — frontend hosting
