@@ -6,10 +6,10 @@
 
 | Name | Student ID | GitHub | Role |
 |------|-----------|--------|------|
-| 贺柏诚 | 1230003810 | jekyll-HBC | Full-stack, AI integration, DevOps |
-| 祝天皓 | 1230002239 | kirei886 | Frontend, UI components |
-| 魏嘉琦 | 1230017330 | holiday739 | Frontend |
-| 范云杰 | 1230003103 | Fancyyyyy0531 | — |
+| 贺柏诚 | 1230003810 | jekyll-HBC | Full-stack development, frontend & backend architecture, AI integration, testing, CI/CD, bug fixes |
+| 祝天皓 | 1230002239 | kirei886 | Final report, proposal report, project testing, presentation slides |
+| 魏嘉琦 | 1230017330 | holiday739 | Demo video, presentation slides |
+| 范云杰 | 1230003103 | Fancyyyyy0531 | Presentation slides |
 
 **Live demo:** https://weroast.pages.dev  
 **Backend API:** https://course-project-ex1-team-13-production.up.railway.app  
